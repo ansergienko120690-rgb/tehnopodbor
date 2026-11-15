@@ -29,11 +29,15 @@ function parseCatalog(categories) {
       if (c.light && k === 'weight') s.b = 'l';
       acc.push(s); return acc;
     }, []);
-    c.items.forEach((r, i) => {
+    c.items.forEach((row, i) => {
+      // Реальная модель: в конце строки — объект-паспорт { id, shop, url, reviews, at, note }
+      const meta = row.length && row[row.length - 1] && typeof row[row.length - 1] === 'object' && !Array.isArray(row[row.length - 1]) ? row[row.length - 1] : null;
+      const r = meta ? row.slice(0, -1) : row;
       if (r.length !== 4 + c.specs.length) errors.push(`${c.id} / ${r[0]} ${r[1]}: ожидалось ${4 + c.specs.length}, есть ${r.length}`);
       const specs = {};
       c.specs.forEach((s, j) => { let v = r[4 + j]; if (s.t === 'c' && typeof v === 'string') v = v.split(''); specs[s.k] = v; });
-      products.push({ id: c.id + '-' + i, cat: c.id, brand: r[0], model: r[1], price: r[2], basePrice: r[2], rating: r[3], specs, demo: true });
+      products.push({ id: (meta && meta.id) || c.id + '-' + i, cat: c.id, brand: r[0], model: r[1], price: r[2], basePrice: r[2], rating: r[3], specs,
+        real: !!meta, source: meta, demo: !meta });
     });
   });
   return { products, errors };
@@ -55,7 +59,7 @@ function applyPrices(p) {
     if (x.custom) return;
     const it = p.items[x.id];
     if (it && +it.price > 0) { x.price = +it.price; x.offer = it; x.demo = false; n++; }
-    else { x.price = x.basePrice; x.offer = null; x.demo = true; }
+    else { x.price = x.basePrice; x.offer = null; x.demo = !x.real; }
   });
   return n;
 }

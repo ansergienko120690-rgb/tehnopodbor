@@ -336,7 +336,7 @@ function detail(id, color) {
     <div class="pad">${specTable(c, p)}${partsOf(p).length > 1 ? `<div class="ksec">Комплект</div><table class="kv">${partsOf(p).filter(x => x.id !== 'all').map(x => `<tr><th>${esc(x.name)}${x.n ? ' ×' + x.n : ''}</th><td>${partSize(x) || '—'}</td></tr>`).join('')}</table>` : ''}
     <div id="revs">${reviewsBlock(p)}</div>
     ${priceSource(p)}
-    ${p.offer && p.offer.url ? `<a class="btn full primary" target="_blank" rel="noopener" href="${esc(p.offer.url)}">Открыть в магазине${p.offer.shop ? ' «' + esc(p.offer.shop) + '»' : ''} ↗</a>` : ''}
+    ${shopLink(p) ? `<a class="btn full primary" target="_blank" rel="noopener" href="${esc(shopLink(p).url)}">Открыть в магазине${shopLink(p).shop ? ' «' + esc(shopLink(p).shop) + '»' : ''} ↗</a>` : ''}
     <a class="btn full" target="_blank" rel="noopener" href="https://market.yandex.ru/search?text=${encodeURIComponent(p.brand + ' ' + p.model)}">Найти цены на Яндекс Маркете ↗</a>
     ${p.custom ? `<button class="btn full danger" data-del="${p.id}">Удалить мою модель</button>` : ''}</div>`);
   REVF.open = false;
@@ -432,10 +432,18 @@ function partsBar(p) {
 
 // Откуда цена: из магазина (prices.json) или демо
 const fmtDate = d => { try { return new Date(d).toLocaleDateString('ru-RU'); } catch { return d; } };
+const shopLink = p => (p.offer && p.offer.url) ? p.offer : (p.source && p.source.url) ? p.source : null;
 function priceSource(p) {
   if (p.custom) return '';
-  if (p.offer) return `<p class="sub" style="margin-top:16px">Цена ${p.offer.shop ? 'магазина «' + esc(p.offer.shop) + '»' : 'из прайса'}${p.offer.at ? ' на ' + fmtDate(p.offer.at) : ''}. Характеристики типовые, 3D-модель построена по габаритам. Перед покупкой сверяйтесь с магазином.</p>`;
-  return '<p class="sub" style="margin-top:16px">Демо-данные: характеристики типовые, цена ориентировочная. 3D-модель построена по габаритам и цвету, детали упрощены. Перед покупкой сверяйтесь с магазином.</p>';
+  const S = p.source, o = p.offer, shop = (o && o.shop) || (S && S.shop) || '';
+  const parts = [];
+  if (p.real) parts.push(`Реальная модель: характеристики${S.reviews ? ', оценка ★ ' + num(p.rating) + ' по ' + plural(S.reviews, 'отзыву', 'отзывам', 'отзывам') : ''} — с сайта магазина «${esc(S.shop)}»${S.at ? ' на ' + fmtDate(S.at) : ''}.`);
+  if (o) parts.push(`Цена ${shop ? 'магазина «' + esc(shop) + '»' : 'из прайса'}${o.at ? ' на ' + fmtDate(o.at) : ''}.`);
+  else if (p.real) parts.push(`Цена на ${fmtDate(S.at)}.`);
+  if (S && S.note) parts.push(esc(S.note) + '.');
+  if (!p.real) parts.push(o ? 'Характеристики типовые.' : 'Демо-данные: характеристики типовые, цена ориентировочная.');
+  parts.push('3D-модель построена по габаритам, детали упрощены. Перед покупкой сверяйтесь с магазином.');
+  return `<p class="sub" style="margin-top:16px">${parts.join(' ')}</p>`;
 }
 
 // ---------- Сводный рейтинг ----------
