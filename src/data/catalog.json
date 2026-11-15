@@ -1,7 +1,7 @@
 {
  "format": "tehnopodbor-catalog/1",
- "version": 1,
- "updated": "2026-11-15",
+ "version": 2,
+ "updated": "2026-11-15T14:58:24.020Z",
  "note": "Характеристика — строка «ключ|подпись|единицы|тип|лучше|фильтр»; товар — [бренд, модель, цена, рейтинг, …значения характеристик, ширина, высота, глубина, вес, коды цветов]. ID товара = <категория>-<порядковый номер>: не меняйте порядок существующих товаров, новые добавляйте в конец.",
  "energy": ["A+++", "A++", "A+", "A", "B", "C", "D"],
  "colors": {
@@ -70,18 +70,14 @@
    "name": "Холодильники",
    "specs": ["#Основные", "type|Тип||s|-|1", "volume|Общий объём|л|n|h|1", "fresh|Холодильная камера|л|n|h", "freezer|Морозильная камера|л|n|h", "#Функции", "nofrost|No Frost||b|h|1", "inverter|Инверторный компрессор||b|h|1", "freshzone|Зона свежести||b|h", "display|Дисплей||b|h", "wifi|Wi‑Fi управление||b|h|1", "#Энергия и шум", "energy|Класс энергопотребления||e|l", "kwh|Энергопотребление|кВт·ч/год|n|l", "noise|Уровень шума|дБ|n|l"],
    "items": [
-    ["Bosch", "Serie 4 NoFrost", 62990, 4.7, "Двухкамерный", 368, 279, 89, 1, 1, 1, 1, 0, "A++", 236, 39, 60, 203, 66, 72, "wxs"],
-    ["Samsung", "SpaceMax", 58990, 4.6, "Двухкамерный", 367, 269, 98, 1, 1, 0, 1, 1, "A+", 305, 35, 59.5, 201, 65.8, 67, "wsg"],
-    ["LG", "DoorCooling+", 64990, 4.7, "Двухкамерный", 384, 277, 107, 1, 1, 1, 1, 1, "A++", 246, 36, 59.5, 203, 68.2, 74, "wbs"],
-    ["Haier", "Комби 190", 47990, 4.5, "Двухкамерный", 364, 262, 102, 1, 0, 1, 1, 0, "A+", 299, 38, 59.5, 190, 65.7, 64, "wbsx"],
-    ["Атлант", "Комби 196", 32990, 4.4, "Двухкамерный", 334, 214, 120, 0, 0, 0, 0, 0, "A", 350, 40, 60, 196, 63, 70, "wse"],
-    ["Beko", "HarvestFresh", 39990, 4.3, "Двухкамерный", 324, 232, 92, 1, 0, 1, 1, 0, "A+", 290, 40, 59.5, 186, 66, 62, "wbs"],
-    ["Indesit", "Классик 185", 29990, 4.2, "Двухкамерный", 298, 223, 75, 0, 0, 0, 0, 0, "A", 330, 39, 60, 185, 64, 58, "ws"],
-    ["Liebherr", "BioFresh", 89990, 4.8, "Двухкамерный", 344, 241, 103, 1, 1, 1, 1, 0, "A+++", 161, 35, 59.7, 201, 67.5, 80, "wx"],
-    ["Haier", "Multi-Door", 119990, 4.6, "Многодверный", 508, 338, 170, 1, 1, 1, 1, 1, "A+", 380, 38, 83, 190, 64.5, 110, "xbg"],
-    ["Атлант", "Компакт 150", 17990, 4.3, "Однокамерный", 220, 190, 30, 0, 0, 0, 0, 0, "A", 230, 39, 60, 150, 63, 50, "ws"],
-    ["Samsung", "Side-by-Side", 129990, 4.6, "Side-by-Side", 617, 402, 215, 1, 1, 0, 1, 1, "A+", 420, 36, 91.2, 178, 71.6, 115, "sbx"]
-   ]
+    ["Midea", "MDRB457FGF01ID", 35990, 5, "Двухкамерный", 344, 239, 105, 1, 1, 1, 1, 0, "A+", 289, 35, 59.5, 186, 57, 54.5, "w", {"id": "fridge-midea-mdrb457fgf01id", "shop": "Ситилинк", "url": "https://www.citilink.ru/product/holodilnik-midea-mdrb457fgf01id-2-hkamern-serebristyi-2158701/", "reviews": 41, "at": "2026-11-15"}],
+    ["LG", "GA-B419SWJL", 44990, 4.9, "Двухкамерный", 354, 230, 124, 1, 1, 1, 1, 0, "A+", 277, 39, 59.5, 190.7, 65.5, 66, "w", {"id": "fridge-lg-ga-b419swjl", "shop": "Ситилинк", "url": "https://www.citilink.ru/product/holodilnik-lg-ga-b419swjl-2-hkamern-belyi-2111505/", "reviews": 105, "at": "2026-11-15"}],
+    ["Атлант", "ХМ-6025-031", 41920, 4.7, "Двухкамерный", 384, 230, 154, 0, 0, 0, 0, 0, "A", 412, 40, 60, 205, 63, 80, "w", {"id": "fridge-атлант-хм-6025-031", "shop": "Ситилинк", "url": "https://www.citilink.ru/product/holodilnik-dvuhkamernyi-atlant-xm-6025-031-belyi-626527/", "reviews": 165, "at": "2026-11-15"}],
+    ["Haier", "C4F640CXU1", 59999, 5, "Двухкамерный", 400, 285, 115, 1, 1, 1, 1, 1, "A+", null, 36, 59.5, 200, 68.2, 79, "x", {"id": "fridge-haier-c4f640cxu1", "shop": "Ситилинк", "url": "https://www.citilink.ru/product/holodilnik-haier-c4f640cxu1-2-hkamern-nerzh-stal-bj0xs2e00ru-2162543/", "reviews": 14, "at": "2026-11-15"}],
+    ["Liebherr", "CBNdgc 5723-20 001", 90560, 5, "Двухкамерный", 381, 275, 106, 0, 0, 1, 1, 0, "A++", 252, 37, 59.7, 201.5, 67.5, 78.1, "g", {"id": "fridge-liebherr-cbndgc-5723-20-001", "shop": "Ситилинк", "url": "https://www.citilink.ru/product/holodilnik-liebherr-cbndgc-5723-20-001-2-hkamern-t-seryi-2149571/", "reviews": 3, "at": "2026-11-15", "note": "No Frost только в морозильной камере"}],
+    ["Hyundai", "CS5003F", 66795, 4.9, "Side-by-Side", 556, 331, 165, 1, 1, 0, 1, 0, "A+", 420, 42, 91.1, 178, 63.6, 91, "b", {"id": "fridge-hyundai-cs5003f", "shop": "Ситилинк", "url": "https://www.citilink.ru/product/holodilnik-dvuhkamernyi-hyundai-cs5003f-total-no-frost-side-by-side-ch-1194188/", "reviews": 110, "at": "2026-11-15", "note": "объёмы камер — полезные; цена без клубной скидки (клубная 57 792)"}]
+   ],
+   "real": true
   },
   {
    "id": "freezer",
@@ -115,17 +111,14 @@
    "name": "Стиральные машины",
    "specs": ["#Основные", "type|Тип загрузки||s|-|1", "load|Загрузка|кг|n|h|1", "spin|Отжим|об/мин|n|h|1", "programs|Программ|шт|n|h", "#Функции", "dryer|Сушка||b|h|1", "dryload|Загрузка сушки|кг|n|h", "steam|Обработка паром||b|h|1", "inverter|Инверторный мотор||b|h|1", "delay|Отложенный старт||b|h", "leak|Защита от протечек||s|-", "wifi|Wi‑Fi управление||b|h|1", "#Ресурсы и шум", "energy|Класс энергопотребления||e|l", "water|Расход воды за цикл|л|n|l", "noise|Шум при отжиме|дБ|n|l"],
    "items": [
-    ["LG", "Steam AI DD", 49990, 4.7, "Фронтальная", 8, 1200, 14, 0, null, 1, 1, 1, "Полная", 1, "A", 49, 73, 60, 85, 47, 62, "wsg"],
-    ["Samsung", "EcoBubble", 44990, 4.6, "Фронтальная", 7, 1200, 14, 0, null, 1, 1, 1, "Полная", 1, "A", 45, 74, 60, 85, 45, 60, "wg"],
-    ["Bosch", "Serie 6 i-DOS", 69990, 4.8, "Фронтальная", 9, 1400, 15, 0, null, 1, 1, 1, "Полная", 1, "A", 50, 71, 60, 85, 59, 73, "w"],
-    ["Haier", "Slim Direct", 36990, 4.4, "Фронтальная", 6, 1200, 16, 0, null, 1, 1, 1, "Частичная", 0, "A", 42, 75, 59.5, 85, 40, 58, "wb"],
-    ["Indesit", "Innex", 27990, 4.2, "Фронтальная", 6, 1000, 16, 0, null, 0, 0, 1, "Частичная", 0, "B", 47, 78, 59.5, 85, 43, 57, "w"],
-    ["Beko", "SteamCure", 31990, 4.3, "Фронтальная", 7, 1200, 15, 0, null, 1, 0, 1, "Частичная", 0, "B", 48, 77, 60, 84, 45, 60, "ws"],
-    ["Атлант", "Slim", 25990, 4.1, "Фронтальная", 6, 1000, 16, 0, null, 0, 0, 1, "Частичная", 0, "C", 48, 79, 60, 85, 41, 58, "w"],
-    ["LG", "с сушкой 10/6", 84990, 4.6, "Фронтальная", 10, 1400, 14, 1, 6, 1, 1, 1, "Полная", 1, "A", 55, 72, 60, 85, 64, 76, "wb"],
-    ["Weissgauff", "с сушкой 8/5", 45990, 4.3, "Фронтальная", 8, 1400, 16, 1, 5, 1, 1, 1, "Полная", 0, "B", 50, 76, 59.5, 85, 48, 63, "w"],
-    ["Electrolux", "Вертикальная 6 кг", 49990, 4.5, "Вертикальная", 6, 1200, 14, 0, null, 1, 1, 1, "Полная", 0, "A", 45, 75, 40, 89, 60, 58, "w"]
-   ]
+    ["Gorenje", "W1NGPI72SBS/C", 25499, 5, "Фронтальная", 7, 1200, 15, 0, null, 1, 1, 1, "Частичная", 0, "A", null, 76, 59.5, 84.5, 43.5, 59, "w", {"id": "washer-gorenje-w1ngpi72sbs-c", "shop": "Ситилинк", "url": "https://www.citilink.ru/product/stiralnaya-mashina-gorenje-w1ngpi72sbs-c-front-maks-7kg-belyi-2045962/", "reviews": 107, "at": "2026-11-15"}],
+    ["LG", "F2V3GS3W", 43950, 4.8, "Фронтальная", 8.5, 1200, 14, 0, null, 1, 1, 1, null, 1, "A", 55, 70, 60, 85, 47.5, 56, "w", {"id": "washer-lg-f2v3gs3w", "shop": "Ситилинк", "url": "https://www.citilink.ru/product/stiralnaya-mashina-lg-f2v3gs3w-kl-a-front-maks-8-5kg-belyi-2238020/", "reviews": 49, "at": "2026-11-15"}],
+    ["Beko", "WSPE7612W", 25990, 4.9, "Фронтальная", 7, 1200, 15, 0, null, 1, 1, 1, null, 0, "A", 52, 77, 60, 84, 45, 60, "w", {"id": "washer-beko-wspe7612w", "shop": "Ситилинк", "url": "https://www.citilink.ru/product/stiralnaya-mashina-beko-wspe7612w-s-frontalnoi-zagruzkoi-s-parom-7kg-1-1729065/", "reviews": 354, "at": "2026-11-15"}],
+    ["Hyundai", "WMD8413", 44200, 4.8, "Фронтальная", 8, 1400, 11, 1, 5, 1, 1, 1, null, 0, "B", null, 76, 60, 85, 52, 60, "w", {"id": "washer-hyundai-wmd8413", "shop": "Ситилинк", "url": "https://www.citilink.ru/product/stiralnaya-mashina-hyundai-wmd8413-s-frontalnoi-zagruzkoi-s-parom-8kg-1914572/", "reviews": 87, "at": "2026-11-15", "note": "цена без клубной скидки (клубная 38 100)"}],
+    ["Indesit", "IWSD 51051 CIS", 21990, 4.8, "Фронтальная", 5, 1000, 13, 0, null, 0, 0, 1, null, 0, "A", 44, 76, 59.5, 85, 42, 54.2, "w", {"id": "washer-indesit-iwsd-51051-cis", "shop": "Ситилинк", "url": "https://www.citilink.ru/product/stiralnaya-mashina-indesit-iwsd-51051-cis-s-frontalnoi-zagruzkoi-5kg-1-1085756/", "reviews": 111, "at": "2026-11-15"}],
+    ["LG", "F1296NDS0", 33990, 4.9, "Фронтальная", 6, 1200, 13, 0, null, 1, 1, 1, null, 1, "A", 56, 74, 60, 85, 44, 59, "w", {"id": "washer-lg-f1296nds0", "shop": "Ситилинк", "url": "https://www.citilink.ru/product/stiralnaya-mashina-lg-f1296nds0-kl-a-front-maks-6kg-belyi-2102957/", "reviews": 76, "at": "2026-11-15"}]
+   ],
+   "real": true
   },
   {
    "id": "dryer",
@@ -444,17 +437,14 @@
    "light": 1,
    "specs": ["#Основные", "type|Тип||s|-|1", "suction|Мощность всасывания|АВт|n|h", "pa|Сила всасывания (роботы)|Па|n|h", "power|Потребляемая мощность|Вт|n|-", "battery|Время работы от батареи|мин|n|h", "dust|Пылесборник|л|n|h", "filter|Фильтр||s|-", "#Функции", "wet|Влажная уборка||b|h|1", "mapping|Построение карты||b|h", "station|Станция самоочистки||b|h|1", "wifi|Wi‑Fi управление||b|h|1", "#Шум", "noise|Уровень шума|дБ|n|l"],
    "items": [
-    ["Dreame", "Робот L10", 39990, 4.7, "Робот", null, 4000, null, 150, 0.45, "HEPA", 1, 1, 0, 1, 62, 35, 9.7, 35, 3.7, "wb"],
-    ["Xiaomi", "Robot Vacuum", 24990, 4.5, "Робот", null, 4000, null, 120, 0.4, "HEPA", 1, 1, 0, 1, 65, 35, 9.5, 35, 3.6, "w"],
-    ["Roborock", "Q7 Max+", 44990, 4.7, "Робот", null, 4200, null, 180, 0.47, "HEPA", 1, 1, 1, 1, 64, 35, 9.6, 35, 3.8, "bw"],
-    ["Dyson", "V12 Detect", 59990, 4.8, "Вертикальный", 150, null, 545, 60, 0.35, "HEPA", 0, 0, 0, 0, 79, 25, 126, 25, 2.2, "ys"],
-    ["Dreame", "Вертикальный T20", 27990, 4.5, "Вертикальный", 150, null, 450, 70, 0.6, "HEPA", 0, 0, 0, 0, 78, 25, 120, 25, 1.6, "g"],
-    ["Samsung", "Jet 75", 34990, 4.4, "Вертикальный", 200, null, 550, 60, 0.8, "HEPA", 0, 0, 0, 0, 80, 25, 110, 20, 2.7, "g"],
-    ["Thomas", "Aqua+", 29990, 4.6, "Моющий", 320, null, 1700, null, 1.8, "Аквафильтр", 1, 0, 0, 0, 81, 32, 34, 48, 8, "bl"],
-    ["Karcher", "VC 3", 12990, 4.4, "Контейнерный", 230, null, 700, null, 0.9, "HEPA", 0, 0, 0, 0, 76, 26, 33, 39, 4.4, "y"],
-    ["Philips", "PowerPro", 11990, 4.3, "Контейнерный", 300, null, 1800, null, 1.5, "Циклон", 0, 0, 0, 0, 80, 28, 30, 42, 5.5, "bl"],
-    ["Bosch", "Serie 4 мешковый", 9990, 4.5, "Мешковый", 300, null, 700, null, 4, "HEPA", 0, 0, 0, 0, 74, 26, 26, 40, 5, "lr"]
-   ]
+    ["Trouver", "E30 Aqua", 20990, 4.9, "Робот", null, 10000, 60, 180, 0.8, "HEPA", 1, 1, 1, 1, 70, 35, 10.8, 35, 3.15, "w", {"id": "vacuum-trouver-e30-aqua", "shop": "Ситилинк", "url": "https://www.citilink.ru/product/pylesos-robot-trouver-e30-aqua-belyi-2133723/", "reviews": 47, "at": "2026-11-15", "note": "0,8 л — мешок в станции"}],
+    ["Xiaomi", "Robot Vacuum S40", 15990, 5, "Робот", null, 10000, 140, 180, 0.52, null, 1, 1, 0, 1, null, 34, 9.8, 34, 4.12, "w", {"id": "vacuum-xiaomi-robot-vacuum-s40", "shop": "Ситилинк", "url": "https://www.citilink.ru/product/pylesos-robot-xiaomi-s40-140vt-belyi-2131633/", "reviews": 12, "at": "2026-11-15"}],
+    ["Dreame", "H12S", 25990, 5, "Моющий", null, 16000, 300, 35, 0.7, "HEPA", 1, 0, 1, 0, 72, 30, 110, 29, 4.9, "b", {"id": "vacuum-dreame-h12s", "shop": "Ситилинк", "url": "https://www.citilink.ru/product/pylesos-moyuschii-dreame-h12s-300vt-chernyi-2020043/", "reviews": 10, "at": "2026-11-15", "note": "0,7 л — бак для грязной воды; станция — самоочистка валика"}],
+    ["Samsung", "VCC4520S36/XEV", 5990, 4.4, "Контейнерный", 350, null, 1600, null, 1.3, "HEPA", 0, 0, 0, 0, 82, 28, 23.8, 39.5, 4.3, "l", {"id": "vacuum-samsung-vcc4520s36-xev", "shop": "Ситилинк", "url": "https://www.citilink.ru/product/pylesos-samsung-vcc4520s36-xev-1600vt-sinii-chernyi-1054982/", "reviews": 326, "at": "2026-11-15"}],
+    ["LG", "VK89309H", 11999, 4.9, "Контейнерный", 420, null, 2000, null, 4.8, null, 0, 0, 0, 0, 77, 28.5, 30.5, 44.5, 6, "s", {"id": "vacuum-lg-vk89309h", "shop": "Ситилинк", "url": "https://www.citilink.ru/product/pylesos-lg-vk89309h-2000vt-serebristyi-1372330/", "reviews": 44, "at": "2026-11-15", "note": "объём пылесборника 4,8 л — по данным магазина, проверить"}],
+    ["Xiaomi", "G20 Lite", 8390, 4.7, "Вертикальный", null, 18000, 215, 40, 0.5, "Циклон", 0, 0, 0, 0, null, 11.4, 34, 21.7, 2.4, "w", {"id": "vacuum-xiaomi-g20-lite", "shop": "Ситилинк", "url": "https://www.citilink.ru/product/pylesos-xiaomi-vacuum-cleaner-g20-lite-eu-215vt-belyi-oranzhevyi-2026162/", "reviews": 45, "at": "2026-11-15", "note": "размеры по данным магазина — ручной блок без трубки"}]
+   ],
+   "real": true
   },
   {
    "id": "windowbot",
@@ -476,15 +466,13 @@
    "dim": "внутр. блок",
    "specs": ["#Основные", "area|Площадь помещения|м²|n|h|1", "cool|Мощность охлаждения|кВт|n|h", "heat|Мощность обогрева|кВт|n|h", "inverter|Инвертор||b|h|1", "heatmin|Обогрев до|°C|n|l", "#Функции", "wifi|Wi‑Fi управление||b|h|1", "ionizer|Ионизатор||b|h", "filters|Фильтры||s|-", "night|Ночной режим||b|h", "selfclean|Самоочистка||b|h", "#Энергия и шум", "energy|Класс энергопотребления||e|l", "noise|Шум внутр. блока|дБ|n|l|1", "noiseout|Шум внешн. блока|дБ|n|l", "refrigerant|Хладагент||s|-", "pipe|Макс. длина трассы|м|n|h", "#Внешний блок", "ow|Ширина внешн. блока|см|n|-", "oh|Высота внешн. блока|см|n|-", "od|Глубина внешн. блока|см|n|-", "okg|Вес внешн. блока|кг|n|-"],
    "items": [
-    ["Daikin", "Siesta", 79990, 4.8, 35, 3.5, 4, 1, -20, 1, 0, "Фотокаталитический", 1, 1, "A+++", 19, 48, "R32", 20, 76.5, 55, 28.5, 34, 80, 29.5, 22.9, 9, "w"],
-    ["Mitsubishi Electric", "Classic", 74990, 4.8, 25, 2.5, 3.2, 1, -15, 0, 0, "Антиаллергенный", 1, 0, "A++", 21, 46, "R32", 20, 80, 55, 28.5, 30, 79.9, 29, 23.2, 10, "w"],
-    ["Haier", "Lightera", 42990, 4.5, 25, 2.6, 2.8, 1, -15, 1, 1, "Угольный", 1, 1, "A++", 22, 49, "R32", 15, 72, 50, 27, 25, 80, 28, 20, 8.5, "w"],
-    ["Ballu", "iGreen Pro", 29990, 4.3, 20, 2.1, 2.3, 1, -15, 0, 1, "Угольный", 1, 1, "A++", 24, 50, "R32", 15, 66, 48, 24, 22, 72, 29, 20, 7.5, "w"],
-    ["Electrolux", "Skandi", 24990, 4.2, 20, 2, 2.1, 0, -7, 0, 0, "Пылевой", 1, 0, "A", 26, 52, "R410A", 15, 66, 48, 24, 24, 72, 29, 20, 7.5, "wb"],
-    ["Royal Clima", "Gloria", 22990, 4.1, 25, 2.6, 2.7, 0, -7, 0, 1, "Пылевой", 1, 1, "A", 27, 53, "R410A", 15, 70, 50, 25, 26, 77, 25, 19, 8, "w"],
-    ["LG", "DualCool", 54990, 4.6, 35, 3.5, 3.8, 1, -15, 1, 1, "Антибактериальный", 1, 1, "A++", 19, 47, "R32", 20, 77, 54, 28.5, 31, 83.7, 30.8, 18.9, 10, "w"],
-    ["Hisense", "Expert Pro", 38990, 4.4, 35, 3.5, 3.7, 1, -15, 1, 1, "Угольный", 1, 1, "A+", 23, 50, "R32", 20, 78, 54, 26, 30, 84, 29, 20, 9, "wb"]
-   ]
+    ["Hyundai", "HAC-09i/T-PRO", 25439, 4.9, 25, 2.6, 2.78, 1, -15, 0, 1, "Пылевой", 1, 1, "A", 22, 48, "R32", 15, 71.2, 45.9, 27.6, 19.5, 69.8, 25.5, 19, 6.5, "w", {"id": "aircon-hyundai-hac-09i-t-pro", "shop": "Ситилинк", "url": "https://www.citilink.ru/product/split-sistema-invertornaya-hyundai-hac-09i-t-pro-nastennaya-do-25m2-90-1731569/", "reviews": 253, "at": "2026-11-15", "note": "шум — минимальный уровень"}],
+    ["Midea", "Favorite MSFRW-09HRN8-I", 32990, 5, 25, 2.49, 2.49, 0, -7, 1, 0, "Антибактериальный", 1, 1, "A", 26, 52.5, "R32", 20, 83.5, 54, 30, 25, 78, 36.5, 27, 9.5, "w", {"id": "aircon-midea-favorite-msfrw-09hrn8-i", "shop": "Ситилинк", "url": "https://www.citilink.ru/product/split-sistema-midea-favorite-msfrw-09hrn8-belyi-2008574/", "reviews": 37, "at": "2026-11-15", "note": "размеры внутреннего блока — по данным магазина"}],
+    ["Samsung", "AR12TXHQASI", 39990, 5, 35, 3.52, 3.81, 1, -15, 0, 0, "Антибактериальный", 1, 1, null, 28, 65, "R32", null, 77, 55.5, 30, 30.6, 80.5, 28.5, 19.4, 9, "w", {"id": "aircon-samsung-ar12txhqasi", "shop": "Ситилинк", "url": "https://www.citilink.ru/product/split-sistema-samsung-ar12txhqasi-1926326/", "reviews": 19, "at": "2026-11-15", "note": "шум внешнего блока — максимальный (минимальный не указан)"}],
+    ["Ballu", "Discovery BSVI-09HN8_V2", 32990, 4.9, 26, 3.37, 3.69, 1, -15, 0, 0, "Пылевой", 1, 1, "A", 23, 49, "R32", 15, 71.2, 45.9, 27.6, 19, 78, 27.5, 19, 7.5, "w", {"id": "aircon-ballu-discovery-bsvi-09hn8-v2", "shop": "Ситилинк", "url": "https://www.citilink.ru/product/split-sistema-ballu-discovery-bsvi-09hn8-belyi-1938623/", "reviews": 13, "at": "2026-11-15", "note": "Wi-Fi — дополнительный модуль (опция)"}],
+    ["Vitek", "VT-2511", 13990, 4.9, 20, 2.05, 2.2, 0, -7, 0, 0, null, 1, 0, "A", 26, 47, "R32", 15, 66.8, 50, 24.8, 19.5, 69.8, 25.5, 19, 6.5, "w", {"id": "aircon-vitek-vt-2511", "shop": "Ситилинк", "url": "https://www.citilink.ru/product/split-sistema-vitek-vt-2511-belyi-2060602/", "reviews": 52, "at": "2026-11-15", "note": "шум внешнего блока — максимальный"}]
+   ],
+   "real": true
   },
   {
    "id": "heater",
@@ -642,14 +630,14 @@
    "name": "Телевизоры",
    "specs": ["#Экран", "diag|Диагональ, дюймы||n|-|1", "res|Разрешение||s|-|1", "matrix|Тип матрицы||s|-|1", "hz|Частота обновления|Гц|n|h", "hdr|HDR||s|-", "#Smart TV и звук", "os|Платформа Smart TV||s|-|1", "sound|Мощность звука|Вт|n|h", "wifi|Wi‑Fi управление||b|h|1", "hdmi|Портов HDMI|шт|n|h"],
    "items": [
-    ["LG", "OLED C4 55", 129990, 4.8, 55, "4K", "OLED", 120, "Dolby Vision", "webOS", 40, 1, 4, 122.6, 70.8, 4.6, 18.9, "b"],
-    ["Samsung", "QLED Q60 55", 64990, 4.6, 55, "4K", "QLED", 60, "HDR10+", "Tizen", 20, 1, 3, 122.8, 70.6, 5.9, 15.6, "b"],
-    ["Xiaomi", "TV A Pro 55", 39990, 4.4, 55, "4K", "QLED", 60, "Dolby Vision", "Google TV", 20, 1, 3, 122.6, 71.3, 8.6, 11, "b"],
-    ["Haier", "Smart 50", 32990, 4.4, 50, "4K", "LED", 60, "HDR10", "Android TV", 16, 1, 3, 111.5, 64.5, 8, 9.5, "b"],
-    ["TCL", "Mini-LED 65", 89990, 4.6, 65, "4K", "Mini-LED", 144, "Dolby Vision", "Google TV", 40, 1, 4, 144.6, 83.6, 7.5, 22, "b"],
-    ["Яндекс", "ТВ Станция 50", 44990, 4.5, 50, "4K", "LED", 60, "Dolby Vision", "Яндекс ТВ", 20, 1, 3, 111.6, 65, 8, 10, "b"],
-    ["Sber", "Full HD 43", 21990, 4.2, 43, "Full HD", "LED", 60, "HDR10", "Салют ТВ", 16, 1, 2, 96, 56.5, 8, 6.5, "b"]
-   ]
+    ["TCL", "55C7L", 76490, 4.9, 55, "4K", "Mini-LED", 144, "Dolby Vision", "Google TV", 40, 1, 4, 122.6, 71, 5.6, 13.3, "b", {"id": "tv-tcl-55c7l", "shop": "Ситилинк", "url": "https://www.citilink.ru/product/televizor-led-tcl-55-55c7l-sqd-mini-led-smart-frameless-chernyi-4k-ult-2173865/", "reviews": 68, "at": "2026-11-15"}],
+    ["Xiaomi", "TV S Mini LED 55 2026", 44990, 4.8, 55, "4K", "Mini-LED", 60, "HDR10+", "Android TV", 30, 1, 3, 122.6, 70.9, 7.7, 12.9, "g", {"id": "tv-xiaomi-tv-s-mini-led-55-2026", "shop": "Ситилинк", "url": "https://www.citilink.ru/product/televizor-led-xiaomi-55-l55mc-sru-smart-t-seryi-4k-ultra-hd-144hz-dvb-2165514/", "reviews": 31, "at": "2026-11-15"}],
+    ["Samsung", "UE55M1EHAUXPY", 49990, 4.8, 55, "4K", "Mini-LED", 60, "HDR10+", "Tizen", 20, 1, 3, 122.5, 70.8, 7.7, 10, "g", {"id": "tv-samsung-ue55m1ehauxpy", "shop": "Ситилинк", "url": "https://www.citilink.ru/product/televizor-qled-samsung-55-ue55m1ehauxpy-smart-titan-4k-ultra-hd-50hz-d-2180726/", "reviews": 31, "at": "2026-11-15", "note": "тип подсветки Mini-LED — по данным магазина"}],
+    ["LG", "OLED55C6RLA.ARU", 134990, 5, 55, "4K", "OLED", 120, "Dolby Vision", "webOS", 40, 1, 4, 122.2, 70.3, 4.5, 14.1, "b", {"id": "tv-lg-oled55c6rla-aru", "shop": "Ситилинк", "url": "https://www.citilink.ru/product/televizor-oled-lg-55-oled55c6rla-aru-smart-chernyi-serebristyi-4k-ultr-2201552/", "reviews": 6, "at": "2026-11-15"}],
+    ["Hyundai", "H-LED50BU7011", 32990, 4.9, 50, "4K", "LED", 60, "Dolby Vision", "Google TV", 20, 1, 4, 111.1, 64.2, 6.6, 8.1, "b", {"id": "tv-hyundai-h-led50bu7011", "shop": "Ситилинк", "url": "https://www.citilink.ru/product/televizor-led-hyundai-50-h-led50bu7011-smart-android-tv-frameless-cher-2125097/", "reviews": 185, "at": "2026-11-15"}],
+    ["Sber", "SDX-43U5500DBA", 20990, 4.8, 43, "4K", "LED", 60, "HDR10", "Салют ТВ", 20, 1, 3, 95.7, 55.6, 8.6, 6.2, "b", {"id": "tv-sber-sdx-43u5500dba", "shop": "Ситилинк", "url": "https://www.citilink.ru/product/televizor-led-sber-43-sdx-43u5500dba-smart-salyut-tv-frameless-chernyi-2182374/", "reviews": 13, "at": "2026-11-15"}]
+   ],
+   "real": true
   },
   {
    "id": "speaker",
