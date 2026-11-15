@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0c0c0d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ТехноПодбор">
+<title>ТехноПодбор — поиск и сравнение бытовой техники</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+<!-- @styles -->
+</head>
+<body>
+<header>
+  <span></span>
+  <div class="wm" data-go="catalog">Техно<b>·</b>подбор</div>
+  <button class="iconbtn" id="theme" aria-label="Сменить тему"></button>
+</header>
+<main id="main"></main>
+<div id="cmpbar" hidden></div>
+<nav>
+  <button class="tab" data-go="catalog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Каталог</button>
+  <button class="tab" data-go="wizard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>Подбор</button>
+  <button class="tab" data-go="compare"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M7 4v16M17 4v16M3 9h8M13 15h8"/></svg>Сравнение<span id="cmpcount" hidden></span></button>
+  <button class="tab" data-go="favs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 20s-7-4.4-9.3-9A5.2 5.2 0 0 1 12 5.6 5.2 5.2 0 0 1 21.3 11C19 15.6 12 20 12 20z"/></svg>Избранное</button>
+</nav>
+<div id="sheet"><div class="panel"><button class="closebtn" id="sheetclose" aria-label="Закрыть">✕</button><div class="body"></div></div></div>
+<div id="toast" role="status"></div>
+<!-- @scripts -->
+</body>
+</html>
