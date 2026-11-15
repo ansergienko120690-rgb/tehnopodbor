@@ -20,11 +20,11 @@ const ok = (name, cond, info = '') => { results.push(`${cond ? 'OK  ' : 'FAIL'} 
 
   // --- модульные проверки
   const u = await pg.evaluate(() => {
-    const p = byId('fridge-0');
+    const p = byId(inCat('fridge')[0].id);
     return {
       plural: [plural(1, 'отзыв', 'отзыва', 'отзывов'), plural(3, 'отзыв', 'отзыва', 'отзывов'), plural(11, 'отзыв', 'отзыва', 'отзывов'), plural(22, 'отзыв', 'отзыва', 'отзывов')],
       base: score(p),
-      tot: totals(['fridge-0', 'fridge-1', 'fridge-2'].map(byId), catById('fridge')).map(t => t.total),
+      tot: totals([inCat('fridge')[0].id, inCat('fridge')[1].id, inCat('fridge')[2].id].map(byId), catById('fridge')).map(t => t.total),
       cats: CATEGORIES.length, prods: PRODUCTS.length, dataErr: DATA_ERRORS.length, radar: typeof radar,
     };
   });
@@ -35,9 +35,9 @@ const ok = (name, cond, info = '') => { results.push(`${cond ? 'OK  ' : 'FAIL'} 
   ok('Радар удалён', u.radar === 'undefined');
 
   // --- отзыв (локальный режим вне claude.ai) влияет на рейтинг
-  await pg.evaluate(() => detail('fridge-0')); await pg.waitForTimeout(1500);
+  await pg.evaluate(() => detail(inCat('fridge')[0].id)); await pg.waitForTimeout(1500);
   await pg.click('[data-revnew]'); await pg.click('[data-star="2"]'); await pg.fill('textarea[name=text]', 'Тест'); await pg.click('#revform button.primary'); await pg.waitForTimeout(500);
-  const s2 = await pg.evaluate(() => score(byId('fridge-0')));
+  const s2 = await pg.evaluate(() => score(byId(inCat('fridge')[0].id)));
   ok('Отзыв учитывается в рейтинге', s2.n === 1 && Math.abs(s2.val - (s2.base * 5 + 2) / 6) < 1e-9, `★ ${s2.val.toFixed(2)}`);
   ok('Кнопка «Изменить мой отзыв» после отзыва', await pg.locator('[data-revedit]').count() === 1);
 
@@ -52,12 +52,13 @@ const ok = (name, cond, info = '') => { results.push(`${cond ? 'OK  ' : 'FAIL'} 
   ok('Закрытие карточки освобождает WebGL', await pg.evaluate(() => !R3.live()));
 
   // --- комплект: кондиционер (внутренний + наружный блок), робот-пылесос (база)
-  await pg.evaluate(() => detail('aircon-0')); await pg.waitForTimeout(3000);
+  await pg.evaluate(() => detail(inCat('aircon')[0].id)); await pg.waitForTimeout(3000);
   const parts = await pg.evaluate(() => [...document.querySelectorAll('#partsbar [data-part]')].map(b => b.textContent));
   ok('Кондиционер: переключатель блоков', parts.join('|') === 'Внутренний блок|Наружный блок|Весь комплект', parts.join(' | '));
   await pg.click('[data-part="out"]'); await pg.waitForTimeout(3500);
   ok('Наружный блок в 3D', await pg.evaluate(() => R3.live() && R3.live().part === 'out'));
-  ok('Подпись размеров наружного блока', /Наружный блок · 76,5×55×28,5 см/.test(await pg.textContent('.parts-cap')), await pg.textContent('.parts-cap'));
+  const capWant = await pg.evaluate(() => { const s = inCat('aircon')[0].specs; return `Наружный блок · ${num(s.ow)}×${num(s.oh)}×${num(s.od)} см`; });
+  ok('Подпись размеров наружного блока', (await pg.textContent('.parts-cap')).includes(capWant), await pg.textContent('.parts-cap'));
   await pg.click('[data-v="dims"]'); await pg.waitForTimeout(3500);
   ok('Размеры наружного блока', await pg.evaluate(() => R3.live() && R3.live().part === 'out' && R3.live().dims));
   await pg.screenshot({ path: path.join(SHOTS, 'кондиционер_наружный_размеры.png'), clip: { x: 0, y: 0, width: 420, height: 560 } });
@@ -67,14 +68,14 @@ const ok = (name, cond, info = '') => { results.push(`${cond ? 'OK  ' : 'FAIL'} 
   await pg.click('[data-v="3d"]'); await pg.click('[data-part="main"]'); await pg.waitForTimeout(3000);
   ok('Обратно на внутренний блок', await pg.evaluate(() => R3.live() && R3.live().part === 'main' && !R3.live().dims));
   ok('Комплект в характеристиках', (await pg.evaluate(() => document.body.innerText)).includes('КОМПЛЕКТ'));
-  const single = await pg.evaluate(() => { closeSheet(); detail('fridge-0'); return document.querySelectorAll('#partsbar [data-part]').length; });
+  const single = await pg.evaluate(() => { closeSheet(); detail(inCat('fridge')[0].id); return document.querySelectorAll('#partsbar [data-part]').length; });
   ok('У одиночного товара переключателя нет', single === 0);
   const kits = await pg.evaluate(() => PRODUCTS.filter(p => partsOf(p).length > 1).length);
   ok('Товаров с комплектом', kits > 10, String(kits));
   await pg.evaluate(() => closeSheet());
 
   // --- сравнение
-  await pg.evaluate(() => { S.compare = ['washer-0', 'washer-1', 'washer-2']; go('compare'); }); await pg.waitForTimeout(500);
+  await pg.evaluate(() => { S.compare = [inCat('washer')[0].id, inCat('washer')[1].id, inCat('washer')[2].id]; go('compare'); }); await pg.waitForTimeout(500);
   const cmp = await pg.evaluate(() => ({ foot: document.querySelector('.cmp tfoot th').textContent, rows: [...document.querySelectorAll('.cmp tbody th')].map(t => t.textContent) }));
   ok('Сравнение: итоговая оценка', cmp.foot === 'Итоговая оценка');
   ok('Сравнение: строки рейтинга и отзывов', ['Рейтинг магазина', 'Отзывы пользователей', 'Сводный рейтинг'].every(r => cmp.rows.includes(r)));
@@ -107,12 +108,12 @@ const ok = (name, cond, info = '') => { results.push(`${cond ? 'OK  ' : 'FAIL'} 
   const m = await pg.evaluate(() => ({
     mods: [typeof ICON, typeof parseCatalog, typeof API, typeof render, typeof illo].join(','),
     inline: !!document.getElementById('tp-catalog') && CATALOG.format, base: API.base,
-    demo: byId('fridge-0').demo,
+    demo: byId(inCat('fridge')[0].id).demo,
   }));
   ok('Модули загружены по отдельности', !/undefined/.test(m.mods), m.mods);
   ok('Каталог взят из встроенного data.json', m.inline === 'tehnopodbor-catalog/1');
   ok('Под file:// сеть не используется', m.base === null);
-  const ap = await pg.evaluate(() => { applyPrices({ updated: '2026-11-15T06:00:00Z', sources: ['test'], items: { 'fridge-0': { price: 77777, shop: 'Тест-маркет', url: 'https://example.com/x', at: '2026-11-15' } } }); render(); detail('fridge-0'); const p = byId('fridge-0'); return { price: p.price, demo: p.demo, sheet: document.body.innerText.includes('Тест-маркет') }; });
+  const ap = await pg.evaluate(() => { applyPrices({ updated: '2026-11-15T06:00:00Z', sources: ['test'], items: { [inCat('fridge')[0].id]: { price: 77777, shop: 'Тест-маркет', url: 'https://example.com/x', at: '2026-11-15' } } }); render(); detail(inCat('fridge')[0].id); const p = byId(inCat('fridge')[0].id); return { price: p.price, demo: p.demo, sheet: document.body.innerText.includes('Тест-маркет') }; });
   await pg.waitForTimeout(600);
   ok('Цена магазина применяется', ap.price === 77777 && ap.demo === false && ap.sheet, `${ap.price} ₽, демо: ${ap.demo}`);
   ok('Кнопка «Открыть в магазине»', await pg.evaluate(() => [...document.querySelectorAll('a')].some(a => /Открыть в магазине/.test(a.textContent) && a.href === 'https://example.com/x')));
@@ -124,17 +125,27 @@ const ok = (name, cond, info = '') => { results.push(`${cond ? 'OK  ' : 'FAIL'} 
   const DIST = path.dirname(PAGE);
   await pg2.route(/^http:\/\/tp\.test\//, r => {
     const u = new URL(r.request().url()).pathname;
-    if (u === '/data/prices.json') return r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ updated: '2030-01-01T00:00:00Z', sources: ['ci'], items: { 'tv-0': { price: 12345, shop: 'CI-шоп' } } }) });
+    if (u === '/data/prices.json') return r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ updated: '2030-01-01T00:00:00Z', sources: ['ci'], items: { 'kettle-0': { price: 12345, shop: 'CI-шоп' } } }) });
     const f = path.join(DIST, u === '/' ? 'index.html' : u);
     return fs.existsSync(f) ? r.fulfill({ status: 200, contentType: f.endsWith('.json') ? 'application/json' : 'text/html', body: fs.readFileSync(f) }) : r.fulfill({ status: 404 });
   });
   const err2 = []; pg2.on('pageerror', e => err2.push(e.message));
   await pg2.goto('http://tp.test/'); await pg2.waitForTimeout(2500);
-  const live = await pg2.evaluate(() => ({ base: API.base, price: byId('tv-0') && byId('tv-0').price, st: API.state.prices }));
+  const live = await pg2.evaluate(() => ({ base: API.base, price: byId('kettle-0') && byId('kettle-0').price, st: API.state.prices }));
   ok('По HTTP цены подтягиваются из data/prices.json', live.price === 12345, `${live.base} → ${live.price} ₽ (${live.st})`);
   ok('Без ошибок JavaScript на HTTP-версии', err2.length === 0, err2.slice(0, 2).join(' | '));
   await pg2.close();
 
+  // --- этап 2: реальные модели
+  const rm = await pg.evaluate(() => { const R = PRODUCTS.filter(p => p.real); const cats = [...new Set(R.map(p => p.cat))]; const p = R.find(x => x.cat === 'aircon');
+    closeSheet(); applyPrices(readInline('tp-prices')); detail(p.id); const txt = document.body.innerText;
+    return { n: R.length, cats: cats.join(','), urls: R.every(x => /^https:/.test(x.source.url)), ids: new Set(R.map(x => x.id)).size === R.length,
+      noDemo: R.every(x => !x.demo), priced: R.filter(x => x.offer).length, src: /Реальная модель/.test(txt) && /Ситилинк/.test(txt),
+      link: [...document.querySelectorAll('a')].some(a => a.href === p.source.url) }; });
+  ok('Реальные модели в 5 категориях', rm.n >= 25 && rm.cats.split(',').length === 5, `${rm.n} моделей: ${rm.cats}`);
+  ok('У каждой реальной модели — ссылка на источник и свой ID', rm.urls && rm.ids);
+  ok('Реальные модели не помечены как демо, у всех цена магазина', rm.noDemo && rm.priced === rm.n, `${rm.priced} из ${rm.n}`);
+  ok('В карточке указан источник и есть ссылка на магазин', rm.src && rm.link);
   ok('Без ошибок JavaScript', errors.length === 0, errors.slice(0, 3).join(' | '));
   console.log(results.join('\n')); console.log(`\nИтого: ${results.length - failed} из ${results.length} пройдено`);
   await b.close(); process.exit(failed ? 1 : 0);
