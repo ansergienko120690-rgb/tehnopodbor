@@ -2,7 +2,7 @@
 // Нужны: npm i playwright three@0.160.0 (three берётся локально вместо CDN), Chrome.
 const { chromium } = require('playwright');
 const fs = require('fs'), path = require('path');
-const PAGE = path.resolve(process.argv[2] || path.join(__dirname, '../index.html'));
+const PAGE = path.resolve(process.argv[2] || path.join(__dirname, '../dist/index.html'));
 const THREE_DIR = process.env.THREE_DIR || path.join(process.cwd(), 'node_modules/three/');
 const SHOTS = process.env.SHOTS || path.join(__dirname, 'shots'); fs.mkdirSync(SHOTS, { recursive: true });
 const results = []; let failed = 0;
@@ -102,6 +102,38 @@ const ok = (name, cond, info = '') => { results.push(`${cond ? 'OK  ' : 'FAIL'} 
   await pg.fill('#q', 'Тест 01'); await pg.waitForTimeout(400);
   const v4 = await pg.evaluate(() => document.querySelectorAll('.grid .card').length);
   ok('Поиск по виртуальному списку', v4 > 0 && v4 <= 120, `${v4} карточек`);
+
+  // --- v7: модули, данные из data.json, слой API
+  const m = await pg.evaluate(() => ({
+    mods: [typeof ICON, typeof parseCatalog, typeof API, typeof render, typeof illo].join(','),
+    inline: !!document.getElementById('tp-catalog') && CATALOG.format, base: API.base,
+    demo: byId('fridge-0').demo,
+  }));
+  ok('Модули загружены по отдельности', !/undefined/.test(m.mods), m.mods);
+  ok('Каталог взят из встроенного data.json', m.inline === 'tehnopodbor-catalog/1');
+  ok('Под file:// сеть не используется', m.base === null);
+  const ap = await pg.evaluate(() => { applyPrices({ updated: '2026-11-15T06:00:00Z', sources: ['test'], items: { 'fridge-0': { price: 77777, shop: 'Тест-маркет', url: 'https://example.com/x', at: '2026-11-15' } } }); render(); detail('fridge-0'); const p = byId('fridge-0'); return { price: p.price, demo: p.demo, sheet: document.body.innerText.includes('Тест-маркет') }; });
+  await pg.waitForTimeout(600);
+  ok('Цена магазина применяется', ap.price === 77777 && ap.demo === false && ap.sheet, `${ap.price} ₽, демо: ${ap.demo}`);
+  ok('Кнопка «Открыть в магазине»', await pg.evaluate(() => [...document.querySelectorAll('a')].some(a => /Открыть в магазине/.test(a.textContent) && a.href === 'https://example.com/x')));
+
+  // --- v7: живое обновление цен по HTTP (как на GitHub Pages)
+  const pg2 = await b.newPage();
+  await pg2.route(/cdn\.jsdelivr\.net\/npm\/three@0\.160\.0\/(.*)/, r => r.fulfill({ status: 200, contentType: 'application/javascript', body: fs.readFileSync(THREE_DIR + r.request().url().match(/three@0\.160\.0\/(.*)/)[1]) }));
+  await pg2.route(/fonts\./, r => r.abort());
+  const DIST = path.dirname(PAGE);
+  await pg2.route(/^http:\/\/tp\.test\//, r => {
+    const u = new URL(r.request().url()).pathname;
+    if (u === '/data/prices.json') return r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ updated: '2030-01-01T00:00:00Z', sources: ['ci'], items: { 'tv-0': { price: 12345, shop: 'CI-шоп' } } }) });
+    const f = path.join(DIST, u === '/' ? 'index.html' : u);
+    return fs.existsSync(f) ? r.fulfill({ status: 200, contentType: f.endsWith('.json') ? 'application/json' : 'text/html', body: fs.readFileSync(f) }) : r.fulfill({ status: 404 });
+  });
+  const err2 = []; pg2.on('pageerror', e => err2.push(e.message));
+  await pg2.goto('http://tp.test/'); await pg2.waitForTimeout(2500);
+  const live = await pg2.evaluate(() => ({ base: API.base, price: byId('tv-0') && byId('tv-0').price, st: API.state.prices }));
+  ok('По HTTP цены подтягиваются из data/prices.json', live.price === 12345, `${live.base} → ${live.price} ₽ (${live.st})`);
+  ok('Без ошибок JavaScript на HTTP-версии', err2.length === 0, err2.slice(0, 2).join(' | '));
+  await pg2.close();
 
   ok('Без ошибок JavaScript', errors.length === 0, errors.slice(0, 3).join(' | '));
   console.log(results.join('\n')); console.log(`\nИтого: ${results.length - failed} из ${results.length} пройдено`);
