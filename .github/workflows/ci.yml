@@ -1,32 +1,52 @@
-# ТехноПодбор: на каждое изменение — автотесты; если тесты прошли и это ветка main — выкладка на GitHub Pages
+# ТехноПодбор: обновление цен → сборка → автотесты → выкладка на GitHub Pages.
+#   push в любую ветку — сборка и тесты (выкладка только из main);
+#   каждый день в 06:17 МСК — посредник обновляет цены (tools/update_prices.mjs) и, если они изменились,
+#   коммитит src/data/prices.json и выкладывает новую версию;
+#   вручную — вкладка Actions → ci → Run workflow.
+# Адреса фидов магазинов — в секрете репозитория PRICE_FEEDS (Settings → Secrets and variables → Actions).
 name: ci
 on:
   push:
+  schedule:
+    - cron: '17 3 * * *'
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
-concurrency: { group: pages, cancel-in-progress: true }
+concurrency: { group: pages, cancel-in-progress: false }
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: 22 }
+      - name: Обновить цены
+        if: github.event_name != 'push'
+        run: node tools/update_prices.mjs
+        env: { PRICE_FEEDS: '${{ secrets.PRICE_FEEDS }}' }
+      - name: Сборка
+        run: node tools/build.mjs
       - run: npm i --no-save playwright three@0.160.0
-      - run: node tests/run.js index.html
+      - name: Автотесты
+        run: node tests/run.js dist/index.html
         env: { CHROME: /usr/bin/google-chrome, THREE_DIR: node_modules/three/ }
       - uses: actions/upload-artifact@v4
         if: always()
         with: { name: test-shots, path: tests/shots }
-      - run: mkdir _site && cp index.html _site/
+      - name: Сохранить новые цены в репозиторий
+        if: github.event_name != 'push' && github.ref == 'refs/heads/main'
+        run: |
+          git config user.name "tehnopodbor-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/data/prices.json
+          git diff --cached --quiet || (git commit -m "Цены на $(date -u +%F)" && git push)
       - uses: actions/upload-pages-artifact@v3
         if: github.ref == 'refs/heads/main'
-        with: { path: _site }
+        with: { path: dist }
   deploy:
-    needs: test
+    needs: build
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment: { name: github-pages, url: '${{ steps.d.outputs.page_url }}' }
