@@ -21,8 +21,9 @@ const today = new Date().toISOString().slice(0, 10);
 
 const norm = s => String(s || '').toLowerCase().replace(/ё/g, 'е').replace(/[^a-zа-я0-9]+/g, '');
 const index = new Map();
-catalog.categories.forEach(c => c.items.forEach((r, i) => { index.set(norm(r[0] + r[1]), c.id + '-' + i); index.set(norm(r[1]), index.get(norm(r[1])) ? null : c.id + '-' + i); }));
-const ids = new Set(catalog.categories.flatMap(c => c.items.map((_, i) => c.id + '-' + i)));
+const idOf = (c, r, i) => { const m = r[r.length - 1]; return (m && typeof m === 'object' && m.id) || c.id + '-' + i; };
+catalog.categories.forEach(c => c.items.forEach((r, i) => { const id = idOf(c, r, i); index.set(norm(r[0] + r[1]), id); index.set(norm(r[1]), index.has(norm(r[1])) ? null : id); }));
+const ids = new Set(catalog.categories.flatMap(c => c.items.map((r, i) => idOf(c, r, i))));
 
 const items = {}, sources = [], log = [];
 function offer(id, o) {

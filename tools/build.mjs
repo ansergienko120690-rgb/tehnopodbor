@@ -19,7 +19,14 @@ const errors = [];
 const ids = new Set();
 catalog.categories.forEach(c => {
   const n = c.specs.filter(s => s[0] !== '#').length + catalog.commonSpecs.filter(s => s[0] !== '#').length;
-  c.items.forEach((r, i) => { ids.add(c.id + '-' + i); if (r.length !== 4 + n) errors.push(`${c.id}-${i} ${r[0]} ${r[1]}: полей ${r.length}, нужно ${4 + n}`); });
+  c.items.forEach((row, i) => {
+    const meta = row[row.length - 1] && typeof row[row.length - 1] === 'object' ? row[row.length - 1] : null;
+    const r = meta ? row.slice(0, -1) : row, id = (meta && meta.id) || c.id + '-' + i;
+    if (ids.has(id)) errors.push(`повтор ID ${id}`);
+    ids.add(id);
+    if (r.length !== 4 + n) errors.push(`${id} ${r[0]} ${r[1]}: полей ${r.length}, нужно ${4 + n}`);
+    if (meta && !/^https:\/\//.test(meta.url || '')) errors.push(`${id}: у реальной модели нет ссылки на источник`);
+  });
 });
 Object.keys(prices.items || {}).forEach(id => { if (!ids.has(id)) errors.push(`prices.json: нет товара ${id}`); });
 if (errors.length) { console.error('Ошибки данных:\n' + errors.join('\n')); process.exit(1); }
