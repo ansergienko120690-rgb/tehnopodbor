@@ -23,7 +23,12 @@ const norm = s => String(s || '').toLowerCase().replace(/ё/g, 'е').replace(/[^
 const index = new Map();
 const idOf = (c, r, i) => { const m = r[r.length - 1]; return (m && typeof m === 'object' && m.id) || c.id + '-' + i; };
 const byName = []; // для поиска по названию: бренд И модель должны встретиться в названии товара
-catalog.categories.forEach(c => c.items.forEach((r, i) => { const id = idOf(c, r, i); index.set(norm(r[0] + r[1]), id); byName.push({ b: norm(r[0]), m: norm(r[1]), id }); }));
+// Из фидов цены получают только реальные модели (с паспортом-метаданными в конце строки каталога):
+// у демо-моделей общие названия («Polaris Термо», «Ballu Инфракрасный»), под них подходят аксессуары.
+const base = {};
+catalog.categories.forEach(c => c.items.forEach((r, i) => { const id = idOf(c, r, i); base[id] = r[2]; const m = r[r.length - 1]; if (!(m && typeof m === 'object' && m.id)) return; index.set(norm(r[0] + r[1]), id); byName.push({ b: norm(r[0]), m: norm(r[1]), id }); }));
+// Цена из фида должна быть правдоподобной: от 0,5 до 2 цен каталога (иначе это аксессуар, комплект или ошибка).
+const plausible = (id, price) => !base[id] || (price >= base[id] * 0.5 && price <= base[id] * 2);
 // Совпадение только по модели без бренда запрещено: «Pro», «Essential XL» встречаются у разных брендов.
 const findByName = name => { const n = norm(name); const hits = byName.filter(x => x.m.length >= 4 && n.includes(x.b) && n.includes(x.m)); return hits.length === 1 ? hits[0].id : undefined; };
 const ids = new Set(catalog.categories.flatMap(c => c.items.map((r, i) => idOf(c, r, i))));
@@ -54,16 +59,18 @@ for (const url of feeds) {
     if (!r.ok) throw new Error('HTTP ' + r.status);
     const xml = await r.text();
     const shop = tag(tag(xml, 'shop'), 'name') || host;
-    let n = 0, total = 0;
+    let n = 0, total = 0, skipped = 0;
     for (const m of xml.matchAll(/<offer\b([^>]*)>([\s\S]*?)<\/offer>/g)) {
       total++;
       if (/available="false"/.test(m[1])) continue;
       const oid = (m[1].match(/id="([^"]+)"/) || [])[1], body = m[2];
       const vendor = tag(body, 'vendor'), model = tag(body, 'model'), name = tag(body, 'name');
       const id = map[oid] || map[`${vendor} ${model}`] || index.get(norm(vendor + model)) || findByName(`${vendor} ${name}`);
-      if (offer(id, { price: +tag(body, 'price'), shop, url: tag(body, 'url') })) n++;
+      const price = +tag(body, 'price');
+      if (id && !plausible(id, price)) { skipped++; continue; }
+      if (offer(id, { price, shop, url: tag(body, 'url') })) n++;
     }
-    sources.push(`${shop} (${n} из ${total})`);
+    sources.push(`${shop} (${n} из ${total}${skipped ? `, отброшено по цене ${skipped}` : ''})`);
   } catch (e) { log.push(`Фид ${host}: ${e.message}`); }
 }
 
