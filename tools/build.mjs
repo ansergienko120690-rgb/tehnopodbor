@@ -15,6 +15,12 @@ const ORDER = ['js/icons.js', 'js/data.js', 'js/api.js', 'js/app.js', 'js/illo.j
 // 1. Проверка данных до сборки
 const catalog = JSON.parse(rd('src/data/catalog.json'));
 const prices = fs.existsSync(path.join(root, 'src/data/prices.json')) ? JSON.parse(rd('src/data/prices.json')) : { updated: null, sources: [], items: {} };
+// Витрина из фидов магазинов (tools/import_feeds.mjs) — дописывается в конец категорий
+const FEED = path.join(root, 'src/data/feed_items.json');
+const feed = fs.existsSync(FEED) ? JSON.parse(fs.readFileSync(FEED, 'utf8')) : null;
+let feedN = 0;
+if (feed && feed.cats) catalog.categories.forEach(c => { const rows = feed.cats[c.id] || []; if (rows.length) { c.items = c.items.concat(rows); c.feed = rows.length; feedN += rows.length; } });
+if (feed) catalog.feed = { updated: feed.updated, sources: feed.sources, count: feedN };
 const errors = [];
 const ids = new Set();
 catalog.categories.forEach(c => {
@@ -50,7 +56,7 @@ html = html.replace('<!-- @styles -->', () => `<style>\n${rd('src/styles.css')}<
 
 fs.mkdirSync(path.join(root, 'dist/data'), { recursive: true });
 fs.writeFileSync(path.join(root, 'dist/index.html'), html);
-fs.copyFileSync(path.join(root, 'src/data/catalog.json'), path.join(root, 'dist/data/catalog.json'));
+fs.writeFileSync(path.join(root, 'dist/data/catalog.json'), JSON.stringify(catalog));
 fs.writeFileSync(path.join(root, 'dist/data/prices.json'), JSON.stringify(prices, null, 1) + '\n');
 const items = catalog.categories.reduce((a, c) => a + c.items.length, 0);
-console.log(`dist/index.html ${(html.length / 1024).toFixed(0)} КБ · ${catalog.categories.length} категорий · ${items} товаров · цен из магазинов: ${Object.keys(prices.items || {}).length}`);
+console.log(`dist/index.html ${(html.length / 1024).toFixed(0)} КБ · ${catalog.categories.length} категорий · ${items} товаров (из них витрина магазинов ${feedN}) · цен из магазинов: ${Object.keys(prices.items || {}).length}`);
