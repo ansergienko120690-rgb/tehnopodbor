@@ -84,7 +84,7 @@ const ok = (name, cond, info = '') => { results.push(`${cond ? 'OK  ' : 'FAIL'} 
   // --- виртуализация: 3000 моделей в одной категории
   await pg.evaluate(() => {
     const src = inCat('kettle');
-    for (let i = 0; i < 3000; i++) { const p = src[i % src.length]; PRODUCTS.push({ ...p, id: 'kettle-t' + i, model: 'Тест ' + String(i).padStart(4, '0'), price: 1000 + i, rating: 4 + (i % 10) / 10 }); }
+    for (let i = 0; i < 3000; i++) { const p = src[i % src.length]; PRODUCTS.push({ ...p, feed: false, source: null, real: false, id: 'kettle-t' + i, model: 'Тест ' + String(i).padStart(4, '0'), price: 1000 + i, rating: 4 + (i % 10) / 10 }); }
     setCat('kettle'); S.sort = 'cheap'; go('catalog');
   });
   await pg.waitForTimeout(800);
