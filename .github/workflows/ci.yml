@@ -28,6 +28,11 @@ jobs:
         env: { PRICE_FEEDS: '${{ secrets.PRICE_FEEDS }}' }
       - name: Сборка
         run: node tools/build.mjs
+      - name: Разведка фидов (dist/feed_survey.json, без ключей)
+        if: github.event_name != 'push'
+        continue-on-error: true
+        run: node tools/feed_survey.mjs
+        env: { PRICE_FEEDS: '${{ secrets.PRICE_FEEDS }}' }
       - run: npm i --no-save playwright three@0.160.0
       - name: Автотесты
         run: node tests/run.js dist/index.html
