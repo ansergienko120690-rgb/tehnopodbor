@@ -125,13 +125,13 @@ const ok = (name, cond, info = '') => { results.push(`${cond ? 'OK  ' : 'FAIL'} 
   const DIST = path.dirname(PAGE);
   await pg2.route(/^http:\/\/tp\.test\//, r => {
     const u = new URL(r.request().url()).pathname;
-    if (u === '/data/prices.json') return r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ updated: '2030-01-01T00:00:00Z', sources: ['ci'], items: { 'kettle-0': { price: 12345, shop: 'CI-шоп' } } }) });
+    if (u === '/data/prices.json') return r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ updated: '2030-01-01T00:00:00Z', sources: ['ci'], items: { 'fridge-midea-mdrb457fgf01id': { price: 12345, shop: 'CI-шоп' } } }) });
     const f = path.join(DIST, u === '/' ? 'index.html' : u);
     return fs.existsSync(f) ? r.fulfill({ status: 200, contentType: f.endsWith('.json') ? 'application/json' : 'text/html', body: fs.readFileSync(f) }) : r.fulfill({ status: 404 });
   });
   const err2 = []; pg2.on('pageerror', e => err2.push(e.message));
   await pg2.goto('http://tp.test/'); await pg2.waitForTimeout(2500);
-  const live = await pg2.evaluate(() => ({ base: API.base, price: byId('kettle-0') && byId('kettle-0').price, st: API.state.prices }));
+  const live = await pg2.evaluate(() => ({ base: API.base, price: byId('fridge-midea-mdrb457fgf01id') && byId('fridge-midea-mdrb457fgf01id').price, st: API.state.prices }));
   ok('По HTTP цены подтягиваются из data/prices.json', live.price === 12345, `${live.base} → ${live.price} ₽ (${live.st})`);
   ok('Без ошибок JavaScript на HTTP-версии', err2.length === 0, err2.slice(0, 2).join(' | '));
   await pg2.close();
@@ -146,6 +146,13 @@ const ok = (name, cond, info = '') => { results.push(`${cond ? 'OK  ' : 'FAIL'} 
   ok('У каждой реальной модели — ссылка на источник и свой ID', rm.urls && rm.ids);
   ok('Реальные модели не помечены как демо, у всех цена магазина', rm.noDemo && rm.priced === rm.n, `${rm.priced} из ${rm.n}`);
   ok('В карточке указан источник и есть ссылка на магазин', rm.src && rm.link);
+
+  // --- без демо-данных: только реальные модели и витрина, пустые категории скрыты
+  const nd = await pg.evaluate(() => ({ demo: PRODUCTS.filter(p => !p.custom && !String(p.id).startsWith('kettle-t') && !p.real).length,
+    empty: CATEGORIES.filter(c => !PRODUCTS.some(p => p.cat === c.id)).length, cats: CATEGORIES.length,
+    box: PRODUCTS.filter(p => !String(p.id).startsWith('kettle-t')).every(p => p.box && p.box.w > 0) }));
+  ok('Демо-моделей нет, пустые категории скрыты', nd.demo === 0 && nd.empty === 0, `${nd.cats} категорий`);
+  ok('У каждого товара есть размер для 3D', nd.box);
 
   // --- витрина магазинов (фиды)
   const fd = await pg.evaluate(() => { const F = PRODUCTS.filter(p => p.feed); if (!F.length) return { n: 0 };
