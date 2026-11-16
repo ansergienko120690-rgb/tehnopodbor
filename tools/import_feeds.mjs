@@ -45,7 +45,7 @@ const RULES = [
   { cat: 'aircon', p: /Бытовые сплит-системы$|Мобильные кондиционеры$|Оконные кондиционеры$/, set: (n, p, m) => aircon(n, m) },
   { cat: 'heater', p: /Радиаторы$|Конвекторы$|Инфракрасные обогреватели$|Масляные обогреватели$|Тепловентиляторы$|Керамические обогреватели|Керамические обогреватели \/ (Напольные|Настольные)$/,
     set: (n, p) => ({ type: /Инфракрас/i.test(p) ? 'Инфракрасный' : /Конвектор/i.test(p) ? 'Конвектор' : /Масл|Радиатор/i.test(p) ? 'Масляный радиатор' : 'Тепловентилятор' }) },
-  { cat: 'fan', p: /(^|\/ )Вентиляторы$/, n: /вентилятор/i, x: /канальн|вытяжн|осев|радиальн|промышлен|крышн/i, set: n => ({ type: /безлопаст/i.test(n) ? 'Безлопастной' : /колонн/i.test(n) ? 'Колонный' : /настольн/i.test(n) ? 'Настольный' : /напольн/i.test(n) ? 'Напольный' : null }) },
+  { cat: 'fan', p: /(^|\/ )Вентиляторы$/, n: /вентилятор/i, x: /канальн|вытяжн|осев|радиальн|промышлен|крышн|вентиляторн|модул|шкаф|стойк|19"|полк|серверн|для корпус|кулер/i, set: n => ({ type: /безлопаст/i.test(n) ? 'Безлопастной' : /колонн/i.test(n) ? 'Колонный' : /настольн/i.test(n) ? 'Настольный' : /напольн/i.test(n) ? 'Напольный' : null }) },
   { cat: 'humidifier', p: /(^|\/ )Увлажнители$|Увлажнители воздуха бытовые$/, set: n => ({ type: /ультразвук/i.test(n) ? 'Ультразвуковой' : /традиц|мойк|испарит/i.test(n) ? 'Традиционный' : null }) },
   { cat: 'purifier', p: /Воздухоочистители$/ },
   { cat: 'waterheater', p: /Водонагреватели (накопительные|проточные)/, set: (n, p) => ({ type: /проточн/i.test(p) ? 'Проточный' : 'Накопительный' }) },
@@ -125,17 +125,20 @@ function brandModel(name, vendor, model, alt, shop) {
   const text = name + ' ' + (alt || '');
   if (!brand) { for (const b of BRANDS) if (new RegExp('(^|\\s)' + b.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(\\s|$)', 'i').test(text)) { brand = b; break; } }
   if (!brand) { const s = SHOP_BRAND.find(([re]) => re.test(shop)); if (s) brand = s[1]; }
-  const strip = s => {
+  const first = w => ((w || '').trim().split(/\s+/)[0] || '').toLowerCase();
+  const strip = (s, lead) => {
     s = (s || '').replace(/\s+/g, ' ').trim();
     const i = brand ? s.toLowerCase().indexOf(brand.toLowerCase()) : -1;
     if (i >= 0) s = s.slice(i + brand.length);
-    else s = s.replace(/^((?:[а-яё-]+|с|со|для|и)\s+)+/i, '');      // ведущие русские слова: «Робот-пылесос со станцией…»
+    else if (lead) s = s.replace(/^((?:[а-яё-]+|с|со|для|и)\s+)+/i, '');      // ведущие русские слова: «Робот-пылесос со станцией…»
     return s.replace(/^[\s,–-]+/, '').replace(/\s*,.*$/, '').trim();
   };
-  let m = model && model !== name ? strip(model) || model.trim() : strip(name);
+  // Ведущие русские слова убираем, только если это начало названия товара («Робот-пылесос…»), а не сама модель («Станция 3»)
+  let m = model && model !== name ? strip(model, first(model) === first(name)) || model.trim() : strip(name, true);
   m = m.replace(/\s+(ч[её]рн|бел|сер|серебрист|красн|син|зел[её]н|беж|розов|золот|graphite|black|white|silver)[а-яё]*(\s.*)?$/i, '').trim();
-  if ((!m || m.length < 2) && alt) m = strip(alt);
-  m = m.replace(/\s+\d{4,}$/, '').slice(0, 48).trim();                     // хвост-артикул
+  if ((!m || m.length < 2) && alt) m = strip(alt, true);
+  m = m.replace(/\s*\((?:[^)]*)\)\s*$/, '');                               // «(синий)»
+  m = m.replace(/\s+\d{7,}$/, '').slice(0, 48).trim();                     // хвост-артикул/штрихкод (номер модели вроде «0801» оставляем)
   return { brand: brand || '', model: m };
 }
 const normKey = s => String(s || '').toLowerCase().replace(/ё/g, 'е').replace(/[^a-zа-я0-9]+/g, '');
