@@ -1,11 +1,11 @@
 {
- "updated": "2026-11-16T09:57:10.845Z",
+ "updated": "2026-11-16T10:05:00.408Z",
  "sources": [
   "прайс CSV (29)",
-  "shop-polaris.ru (0 из 814)",
+  "shop-polaris.ru (6 из 814)",
   "Weissgauff (0 из 45)",
   "Xiaomi (Россия) - Официальный интернет магазин (0 из 470)",
-  "xcom-shop.ru (6 из 1843)"
+  "xcom-shop.ru (34 из 1843)"
  ],
  "items": {
   "fridge-midea-mdrb457fgf01id": {
@@ -182,10 +182,40 @@
    "url": "https://www.citilink.ru/product/split-sistema-vitek-vt-2511-belyi-2060602/",
    "at": "2026-11-16"
   },
-  "airfryer-4": {
-   "price": 38850,
+  "iron-3": {
+   "price": 299,
+   "shop": "shop-polaris.ru",
+   "url": "https://codeaven.com/g/dpswyfwdp1ae0b8a3d556abf83b169/?erid=25H8d7vbP8SRTvHZHZ5u6Z&f_id=24294&ulp=https%3A%2F%2Fshop-polaris.ru%2Fpolaris-standable-lid%2Fpolaris-sl20%2F",
+   "at": "2026-11-16"
+  },
+  "heater-3": {
+   "price": 1890,
    "shop": "xcom-shop.ru",
-   "url": "https://bywiola.com/g/uxg3ldkcreae0b8a3d5567a4d63e81/?erid=MvGzQC98w3Z1gMq1kTXff6o1&f_id=22655&ulp=https%3A%2F%2Fwww.xcom-shop.ru%2Faxis_pro_1258666.html",
+   "url": "https://bywiola.com/g/uxg3ldkcreae0b8a3d5567a4d63e81/?erid=MvGzQC98w3Z1gMq1kTXff6o1&f_id=22655&ulp=https%3A%2F%2Fwww.xcom-shop.ru%2Fballu_bih-lw-12_662889.html",
+   "at": "2026-11-16"
+  },
+  "heater-0": {
+   "price": 734,
+   "shop": "xcom-shop.ru",
+   "url": "https://bywiola.com/g/uxg3ldkcreae0b8a3d5567a4d63e81/?erid=MvGzQC98w3Z1gMq1kTXff6o1&f_id=22655&ulp=https%3A%2F%2Fwww.xcom-shop.ru%2Fballu_bftevur_617222.html",
+   "at": "2026-11-16"
+  },
+  "waterfilter-4": {
+   "price": 13603,
+   "shop": "xcom-shop.ru",
+   "url": "https://bywiola.com/g/uxg3ldkcreae0b8a3d5567a4d63e81/?erid=MvGzQC98w3Z1gMq1kTXff6o1&f_id=22655&ulp=https%3A%2F%2Fwww.xcom-shop.ru%2Fgeyzer_prestizh-m_572035.html",
+   "at": "2026-11-16"
+  },
+  "dryer-1": {
+   "price": 59990,
+   "shop": "xcom-shop.ru",
+   "url": "https://bywiola.com/g/uxg3ldkcreae0b8a3d5567a4d63e81/?erid=MvGzQC98w3Z1gMq1kTXff6o1&f_id=22655&ulp=https%3A%2F%2Fwww.xcom-shop.ru%2Flg_b07ts_684933.html",
+   "at": "2026-11-16"
+  },
+  "purifier-0": {
+   "price": 4116,
+   "shop": "xcom-shop.ru",
+   "url": "https://bywiola.com/g/uxg3ldkcreae0b8a3d5567a4d63e81/?erid=MvGzQC98w3Z1gMq1kTXff6o1&f_id=22655&ulp=https%3A%2F%2Fwww.xcom-shop.ru%2Fxiaomi_bhr5272gl_1032107.html",
    "at": "2026-11-16"
   }
  }
