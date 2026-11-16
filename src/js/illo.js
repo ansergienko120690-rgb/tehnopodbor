@@ -311,7 +311,7 @@ function palette(code, id) {
 
 // Иллюстрация модели: opts.color — код цвета, opts.dims — выносные размеры, opts.bare — без тени
 function illoParts(p, color) {
-  const [w0, h0, d0] = [p.specs.width, p.specs.height, p.specs.depth];
+  const B = p.box || {}, [w0, h0, d0] = [p.specs.width || B.w, p.specs.height || B.h, p.specs.depth || B.d];
   const w = +w0 || 50, h = +h0 || 50, d = +d0 || w;
   const [W, H] = (VIS[p.cat] || ((a, b) => [a, b]))(w, h, d, p);
   const id = ++ILLO_ID, code = color || (p.specs.colors || [])[0] || 's';

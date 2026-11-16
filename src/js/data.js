@@ -40,6 +40,14 @@ function parseCatalog(categories) {
         real: !!meta, source: meta, demo: !meta });
     });
   });
+  // Витрина магазинов: у товаров из фидов нет габаритов — для 3D берём типичный размер категории (медиана),
+  // в характеристиках они остаются пустыми.
+  const med = a => { a = a.filter(v => +v > 0).sort((x, y) => x - y); return a.length ? a[a.length >> 1] : null; };
+  categories.forEach(c => {
+    const own = products.filter(p => p.cat === c.id && !(p.source && p.source.src === 'feed'));
+    const box = { w: med(own.map(p => p.specs.width)), h: med(own.map(p => p.specs.height)), d: med(own.map(p => p.specs.depth)) };
+    products.forEach(p => { if (p.cat === c.id && p.source && p.source.src === 'feed') { p.feed = true; p.box = box; } });
+  });
   return { products, errors };
 }
 (function init() {

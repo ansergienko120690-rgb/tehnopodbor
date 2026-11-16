@@ -99,7 +99,7 @@ function canvasTex(w, h, draw) {
 // ---------- сборщики моделей ----------
 const num0 = v => +v || 0;
 function dimsOf(p) {
-  const w = num0(p.specs.width) || 50, h = num0(p.specs.height) || 50, d = num0(p.specs.depth) || Math.min(w, h) * .8;
+  const B = p.box || {}, w = num0(p.specs.width) || num0(B.w) || 50, h = num0(p.specs.height) || num0(B.h) || 50, d = num0(p.specs.depth) || num0(B.d) || Math.min(w, h) * .8;
   return { w, h, d };
 }
 // «Коробка с фасадом»: корпус + наклейка спереди

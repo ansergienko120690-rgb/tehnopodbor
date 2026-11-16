@@ -327,6 +327,7 @@ function detail(id, color) {
       <div class="vhint">Покрутите модель пальцем · двумя пальцами — приблизить</div>
       <div class="vtools"><button data-v="3d" class="on">3D</button><button data-v="front">Спереди</button><button data-v="side">Сбоку</button><button data-v="top">Сверху</button><button data-v="dims">Размеры</button></div></div>
     <div id="partsbar">${partsBar(p)}</div>
+    ${p.source && p.source.picture ? `<div class="shopphoto"><img src="${esc(p.source.picture)}" alt="Фото товара из магазина" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.remove()"><span>Фото магазина</span></div>` : ''}
     ${cols.length ? `<div class="recolor">${cols.map(k => `<button class="${k === cur ? 'on' : ''}" data-recolor="${k}" data-pid="${p.id}" aria-label="${COLORS[k] ? COLORS[k][0] : k}">${swatch(k)}</button>`).join('')}</div><div class="recolor-l">${COLORS[cur] ? COLORS[cur][0] : ''}</div>` : ''}
     <div class="ptitle"><div class="brand">${esc(p.brand)} · ${esc(c.name)}</div><h2>${esc(p.model)}</h2>
       <span class="price">${p.price ? rub(p.price) : '—'}</span> ${ratingLine(p, 1)}
@@ -404,7 +405,7 @@ window.addEventListener('resize', () => { if (VG.items) { VG.rowH = 0; vgUpdate(
 const MAIN_NAME = { aircon: 'Внутренний блок', vacuum: 'Робот', waterfilter: 'Фильтр', toothbrush: 'Щётка', shaver: 'Бритва',
   styler: 'Стайлер', trimmer: 'Машинка', steamer: 'Отпариватель', tv: 'Телевизор', foodproc: 'Комбайн' };
 function partsOf(p) {
-  const s = p.specs, P = [{ id: 'main', name: MAIN_NAME[p.cat] || 'Изделие', w: s.width, h: s.height, d: s.depth }];
+  const s = p.specs, B = p.box || {}, P = [{ id: 'main', name: MAIN_NAME[p.cat] || 'Изделие', w: s.width || B.w, h: s.height || B.h, d: s.depth || B.d, approx: !s.width && !!B.w }];
   const add = (id, name, w, h, d, n) => P.push({ id, name, w, h, d, n });
   switch (p.cat) {
     case 'aircon': add('out', 'Наружный блок', s.ow || 70, s.oh || 55, s.od || 27); break;
@@ -421,7 +422,7 @@ function partsOf(p) {
   if (P.length > 1) P.push({ id: 'all', name: 'Весь комплект' });
   return P;
 }
-const partSize = pt => pt.w ? `${num(pt.w)}×${num(pt.h)}×${num(pt.d)} см` : '';
+const partSize = pt => pt.w ? `${pt.approx ? '≈ ' : ''}${num(pt.w)}×${num(pt.h)}×${num(pt.d)} см${pt.approx ? ' (типичный размер)' : ''}` : '';
 function partsBar(p) {
   const P = partsOf(p); if (P.length < 2) return '';
   const cur = S.detail ? S.detail.part : 'main', pt = P.find(x => x.id === cur) || P[0];
@@ -437,6 +438,12 @@ function priceSource(p) {
   if (p.custom) return '';
   const S = p.source, o = p.offer, shop = (o && o.shop) || (S && S.shop) || '';
   const parts = [];
+  if (p.feed) {
+    parts.push(`Товар из каталога магазина «${esc(S.shop)}»${S.at ? ' на ' + fmtDate(S.at) : ''}. Магазин не передаёт характеристики — показаны только те, что указаны в названии${S.title ? ' («' + esc(S.title) + '»)' : ''}.`);
+    if (S.offers && S.offers.length > 1) parts.push('Цены в магазинах: ' + S.offers.map(x => `«${esc(x.shop)}» ${rub(x.price)}`).join(', ') + '.');
+    parts.push('Размеры 3D-модели — типичные для категории, не этой модели. Перед покупкой сверяйтесь с магазином.');
+    return `<p class="sub" style="margin-top:16px">${parts.join(' ')}</p>`;
+  }
   if (p.real) parts.push(`Реальная модель: характеристики${S.reviews ? ', оценка ★ ' + num(p.rating) + ' по ' + plural(S.reviews, 'отзыву', 'отзывам', 'отзывам') : ''} — с сайта магазина «${esc(S.shop)}»${S.at ? ' на ' + fmtDate(S.at) : ''}.`);
   if (o) parts.push(`Цена ${shop ? 'магазина «' + esc(shop) + '»' : 'из прайса'}${o.at ? ' на ' + fmtDate(o.at) : ''}.`);
   else if (p.real) parts.push(`Цена на ${fmtDate(S.at)}.`);
