@@ -43,6 +43,7 @@ const API = {
     const custom = PRODUCTS.filter(p => p.custom);
     CATEGORIES.splice(0, CATEGORIES.length, ...c.categories);
     PRODUCTS.splice(0, PRODUCTS.length, ...products, ...custom);
+    hideEmpty(CATEGORIES, PRODUCTS);
     Object.assign(CATALOG, { version: c.version, updated: c.updated });
     this.state.catalog = 'с сервера, версия ' + c.version;
     return true;

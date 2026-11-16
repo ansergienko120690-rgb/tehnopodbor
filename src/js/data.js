@@ -40,19 +40,25 @@ function parseCatalog(categories) {
         real: !!meta, source: meta, demo: !meta });
     });
   });
-  // Витрина магазинов: у товаров из фидов нет габаритов — для 3D берём типичный размер категории (медиана),
+  // Габариты для 3D: у товаров витрины (фиды) их обычно нет — берём типичный размер категории (c.box, иначе медиана),
   // в характеристиках они остаются пустыми.
   const med = a => { a = a.filter(v => +v > 0).sort((x, y) => x - y); return a.length ? a[a.length >> 1] : null; };
   categories.forEach(c => {
-    const own = products.filter(p => p.cat === c.id && !(p.source && p.source.src === 'feed'));
-    const box = { w: med(own.map(p => p.specs.width)), h: med(own.map(p => p.specs.height)), d: med(own.map(p => p.specs.depth)) };
-    products.forEach(p => { if (p.cat === c.id && p.source && p.source.src === 'feed') { p.feed = true; p.box = box; } });
+    const mine = products.filter(p => p.cat === c.id);
+    const own = mine.filter(p => !(p.source && p.source.src === 'feed'));
+    const b = c.box || {}, box = { w: b.w || med(own.map(p => p.specs.width)), h: b.h || med(own.map(p => p.specs.height)), d: b.d || med(own.map(p => p.specs.depth)) };
+    mine.forEach(p => { p.box = box; if (p.source && p.source.src === 'feed') p.feed = true; });
   });
   return { products, errors };
+}
+// Категории без товаров не показываем: появятся сами, когда товары придут из магазинов
+function hideEmpty(categories, products) {
+  for (let i = categories.length - 1; i >= 0; i--) if (!products.some(p => p.cat === categories[i].id)) categories.splice(i, 1);
 }
 (function init() {
   const { products, errors } = parseCatalog(CATEGORIES);
   PRODUCTS.push(...products); DATA_ERRORS.push(...errors);
+  hideEmpty(CATEGORIES, PRODUCTS);
   if (DATA_ERRORS.length) console.error('Ошибки данных:', DATA_ERRORS);
 })();
 

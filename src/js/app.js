@@ -13,7 +13,7 @@ const store = {
 const catById = id => CATEGORIES.find(c => c.id === id);
 const S = {
   view: 'catalog',
-  cat: catById(store.get('cat', 'fridge')) ? store.get('cat', 'fridge') : 'fridge',
+  cat: catById(store.get('cat', 'fridge')) ? store.get('cat', 'fridge') : (catById('fridge') ? 'fridge' : CATEGORIES[0].id),
   theme: store.get('theme', 'dark'),
   q: '', sort: 'rating', maxPrice: null, brands: new Set(), colors: new Set(), sf: {},
   showFilters: false,
@@ -121,7 +121,7 @@ function filtered() {
     }
     return true;
   });
-  const so = { rating: (a, b) => score(b).val - score(a).val || b.rating - a.rating, reviews: (a, b) => score(b).n - score(a).n || score(b).val - score(a).val, cheap: (a, b) => a.price - b.price, exp: (a, b) => b.price - a.price };
+  const so = { rating: (a, b) => score(b).val - score(a).val || b.rating - a.rating || a.price - b.price, reviews: (a, b) => score(b).n - score(a).n || score(b).val - score(a).val, cheap: (a, b) => a.price - b.price, exp: (a, b) => b.price - a.price };
   return list.sort(so[S.sort]);
 }
 
@@ -431,7 +431,7 @@ function partsBar(p) {
 }
 
 
-// Откуда цена: из магазина (prices.json) или демо
+// Откуда цена и характеристики: реальная модель (с паспортом) или витрина магазина
 const fmtDate = d => { try { return new Date(d).toLocaleDateString('ru-RU'); } catch { return d; } };
 const shopLink = p => (p.offer && p.offer.url) ? p.offer : (p.source && p.source.url) ? p.source : null;
 function priceSource(p) {
@@ -448,7 +448,6 @@ function priceSource(p) {
   if (o) parts.push(`Цена ${shop ? 'магазина «' + esc(shop) + '»' : 'из прайса'}${o.at ? ' на ' + fmtDate(o.at) : ''}.`);
   else if (p.real) parts.push(`Цена на ${fmtDate(S.at)}.`);
   if (S && S.note) parts.push(esc(S.note) + '.');
-  if (!p.real) parts.push(o ? 'Характеристики типовые.' : 'Демо-данные: характеристики типовые, цена ориентировочная.');
   parts.push('3D-модель построена по габаритам, детали упрощены. Перед покупкой сверяйтесь с магазином.');
   return `<p class="sub" style="margin-top:16px">${parts.join(' ')}</p>`;
 }
