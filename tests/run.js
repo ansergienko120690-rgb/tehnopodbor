@@ -137,7 +137,7 @@ const ok = (name, cond, info = '') => { results.push(`${cond ? 'OK  ' : 'FAIL'} 
   await pg2.close();
 
   // --- этап 2: реальные модели
-  const rm = await pg.evaluate(() => { const R = PRODUCTS.filter(p => p.real); const cats = [...new Set(R.map(p => p.cat))]; const p = R.find(x => x.cat === 'aircon');
+  const rm = await pg.evaluate(() => { const R = PRODUCTS.filter(p => p.real && !p.feed); const cats = [...new Set(R.map(p => p.cat))]; const p = R.find(x => x.cat === 'aircon');
     closeSheet(); applyPrices(readInline('tp-prices')); detail(p.id); const txt = document.body.innerText;
     return { n: R.length, cats: cats.join(','), urls: R.every(x => /^https:/.test(x.source.url)), ids: new Set(R.map(x => x.id)).size === R.length,
       noDemo: R.every(x => !x.demo), priced: R.filter(x => x.offer).length, src: /Реальная модель/.test(txt) && /Ситилинк/.test(txt),
@@ -146,6 +146,18 @@ const ok = (name, cond, info = '') => { results.push(`${cond ? 'OK  ' : 'FAIL'} 
   ok('У каждой реальной модели — ссылка на источник и свой ID', rm.urls && rm.ids);
   ok('Реальные модели не помечены как демо, у всех цена магазина', rm.noDemo && rm.priced === rm.n, `${rm.priced} из ${rm.n}`);
   ok('В карточке указан источник и есть ссылка на магазин', rm.src && rm.link);
+
+  // --- витрина магазинов (фиды)
+  const fd = await pg.evaluate(() => { const F = PRODUCTS.filter(p => p.feed); if (!F.length) return { n: 0 };
+    const p = F[0]; closeSheet(); detail(p.id); const txt = document.body.innerText;
+    return { n: F.length, priced: F.every(x => x.price > 0 && /^https:/.test(x.source.url)), noRating: F.every(x => !x.rating),
+      box: F.every(x => x.box && x.box.w > 0 && x.box.h > 0), note: /Магазин не передаёт характеристики/.test(txt) && /типичные для категории/.test(txt),
+      link: [...document.querySelectorAll('a')].some(a => a.href === p.source.url), dims: !/\d+×\d+ см/.test(document.querySelector('.ptitle').innerText) }; });
+  if (fd.n) {
+    ok('Витрина: у товаров из фидов цена и ссылка магазина', fd.priced, `${fd.n} товаров`);
+    ok('Витрина: рейтинг не выдумывается, 3D — типичный размер категории', fd.noRating && fd.box);
+    ok('Витрина: в карточке честная пометка и ссылка, без выдуманных габаритов', fd.note && fd.link && fd.dims);
+  }
   ok('Без ошибок JavaScript', errors.length === 0, errors.slice(0, 3).join(' | '));
   console.log(results.join('\n')); console.log(`\nИтого: ${results.length - failed} из ${results.length} пройдено`);
   await b.close(); process.exit(failed ? 1 : 0);
