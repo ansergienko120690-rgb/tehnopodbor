@@ -22,7 +22,10 @@ const today = new Date().toISOString().slice(0, 10);
 const norm = s => String(s || '').toLowerCase().replace(/ё/g, 'е').replace(/[^a-zа-я0-9]+/g, '');
 const index = new Map();
 const idOf = (c, r, i) => { const m = r[r.length - 1]; return (m && typeof m === 'object' && m.id) || c.id + '-' + i; };
-catalog.categories.forEach(c => c.items.forEach((r, i) => { const id = idOf(c, r, i); index.set(norm(r[0] + r[1]), id); index.set(norm(r[1]), index.has(norm(r[1])) ? null : id); }));
+const byName = []; // для поиска по названию: бренд И модель должны встретиться в названии товара
+catalog.categories.forEach(c => c.items.forEach((r, i) => { const id = idOf(c, r, i); index.set(norm(r[0] + r[1]), id); byName.push({ b: norm(r[0]), m: norm(r[1]), id }); }));
+// Совпадение только по модели без бренда запрещено: «Pro», «Essential XL» встречаются у разных брендов.
+const findByName = name => { const n = norm(name); const hits = byName.filter(x => x.m.length >= 4 && n.includes(x.b) && n.includes(x.m)); return hits.length === 1 ? hits[0].id : undefined; };
 const ids = new Set(catalog.categories.flatMap(c => c.items.map((r, i) => idOf(c, r, i))));
 
 const items = {}, sources = [], log = [];
@@ -57,7 +60,7 @@ for (const url of feeds) {
       if (/available="false"/.test(m[1])) continue;
       const oid = (m[1].match(/id="([^"]+)"/) || [])[1], body = m[2];
       const vendor = tag(body, 'vendor'), model = tag(body, 'model'), name = tag(body, 'name');
-      const id = map[oid] || map[`${vendor} ${model}`] || index.get(norm(vendor + model)) || index.get(norm(model)) || index.get(norm(name));
+      const id = map[oid] || map[`${vendor} ${model}`] || index.get(norm(vendor + model)) || findByName(`${vendor} ${name}`);
       if (offer(id, { price: +tag(body, 'price'), shop, url: tag(body, 'url') })) n++;
     }
     sources.push(`${shop} (${n} из ${total})`);
