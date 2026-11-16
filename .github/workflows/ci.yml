@@ -1,7 +1,7 @@
 # ТехноПодбор: обновление цен → сборка → автотесты → выкладка на GitHub Pages.
 #   push в любую ветку — сборка и тесты (выкладка только из main);
-#   каждый день в 06:17 МСК — посредник обновляет цены (tools/update_prices.mjs) и, если они изменились,
-#   коммитит src/data/prices.json и выкладывает новую версию;
+#   каждый день в 06:17 МСК — витрина магазинов из фидов (tools/import_feeds.mjs) и цены (tools/update_prices.mjs);
+#   если что-то изменилось, коммитит src/data/feed_items.json и prices.json и выкладывает новую версию;
 #   вручную — вкладка Actions → ci → Run workflow.
 # Адреса фидов магазинов — в секрете репозитория PRICE_FEEDS (Settings → Secrets and variables → Actions).
 name: ci
@@ -22,17 +22,17 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: 22 }
+      - name: Витрина магазинов из фидов (src/data/feed_items.json)
+        if: github.event_name != 'push'
+        continue-on-error: true
+        run: node tools/import_feeds.mjs
+        env: { PRICE_FEEDS: '${{ secrets.PRICE_FEEDS }}' }
       - name: Обновить цены
         if: github.event_name != 'push'
         run: node tools/update_prices.mjs
         env: { PRICE_FEEDS: '${{ secrets.PRICE_FEEDS }}' }
       - name: Сборка
         run: node tools/build.mjs
-      - name: Разведка фидов (dist/feed_survey.json, без ключей)
-        if: github.event_name != 'push'
-        continue-on-error: true
-        run: node tools/feed_survey.mjs
-        env: { PRICE_FEEDS: '${{ secrets.PRICE_FEEDS }}' }
       - run: npm i --no-save playwright three@0.160.0
       - name: Автотесты
         run: node tests/run.js dist/index.html
@@ -45,8 +45,8 @@ jobs:
         run: |
           git config user.name "tehnopodbor-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/data/prices.json
-          git diff --cached --quiet || (git commit -m "Цены на $(date -u +%F)" && git push)
+          git add src/data/prices.json src/data/feed_items.json 2>/dev/null || git add src/data/prices.json
+          git diff --cached --quiet || (git commit -m "Цены и витрина магазинов на $(date -u +%F)" && git push)
       - uses: actions/upload-pages-artifact@v3
         if: github.ref == 'refs/heads/main'
         with: { path: dist }
