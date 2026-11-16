@@ -62,7 +62,7 @@ const RULES = [
 ];
 // Рубрики-«сборники» и не-товары: аксессуары, запчасти, комплектующие
 const SKIP_PATH = /Аксессуар|Комплектующ|Запчаст|Расходн|Чаши для|Мульти-сплит|Полупромышлен/i;
-const SKIP_NAME = /аксессуар|насадк|запчаст|сменн|чехол|кронштейн|крепление|пульт|мешк|кабель|картридж|комплект фильтров|фильтр для|набор щ[её]ток|щ[её]тки для|подставк|переходник|шланг/i;
+const SKIP_NAME = /^(комплект|набор|станция|база)\s|пылесборник|антискалант|для мультиканальн|аксессуар|насадк|запчаст|сменн|чехол|кронштейн|крепление|пульт|мешк|кабель|картридж|комплект фильтров|фильтр для|набор щ[её]ток|щ[её]тки для|подставк|переходник|шланг/i;
 
 // ---------- Характеристики из названия ----------
 const num = s => +String(s).replace(/\s/g, '').replace(',', '.');
@@ -179,7 +179,7 @@ for (const url of urls) {
       const b = m[2], cpath = pathOf(tag(b, 'categoryId'));
       if (!cpath || SKIP_PATH.test(cpath.split(' / ').pop())) continue;   // только последнее звено: «Телевизоры и аксессуары / Телевизоры» — можно
       const name = tag(b, 'name'), rule = RULES.find(r => r.p.test(cpath) && (!r.n || r.n.test(name)) && !(r.x && r.x.test(name)));
-      if (!rule || SKIP_NAME.test(name)) continue;
+      if (!rule || SKIP_NAME.test(name) || (rule.cat !== 'waterfilter' && /^фильтр/i.test(name))) continue;
       const price = +tag(b, 'price'); if (!(price > 0)) continue;
       const params = {}; for (const pm of b.matchAll(/<param\b[^>]*name="([^"]+)"[^>]*>([\s\S]*?)<\/param>/g)) params[un(pm[1])] = un(pm[2]);
       const alt = params['Альтернативное название'] || '', mini = params.minidescription || '';
@@ -213,6 +213,10 @@ for (const it of found.values()) {
   if (it.offers.length > 1) meta.offers = it.offers.slice(0, 5).map(o => ({ shop: o.shop, price: o.price, url: o.url }));
   (cats[it.cat] = cats[it.cat] || []).push([it.brand, it.model, best.price, 0, ...vals, meta]);
 }
+// Страховка от аксессуаров, проскочивших по названию: цена ниже 10% медианы категории — не товар этой категории
+let cheap = 0;
+for (const k of Object.keys(cats)) { const pr = cats[k].map(r => r[2]).sort((a, b) => a - b), m = pr[pr.length >> 1]; const n0 = cats[k].length; cats[k] = cats[k].filter(r => r[2] >= m * 0.1); cheap += n0 - cats[k].length; }
+if (cheap) log.push(`Отброшено как вероятные аксессуары (цена < 10% медианы категории): ${cheap}`);
 for (const k of Object.keys(cats)) cats[k].sort((a, b) => a[0].localeCompare(b[0], 'ru') || a[2] - b[2]);
 const n = Object.values(cats).reduce((a, r) => a + r.length, 0);
 if (!urls.length) { console.log('Фидов нет — feed_items.json не меняется.'); process.exit(0); }
