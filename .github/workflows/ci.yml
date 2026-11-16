@@ -22,6 +22,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: 22 }
+      - name: Характеристики товаров витрины со страниц магазинов (research/specs_cache.json)
+        if: github.event_name != 'push'
+        continue-on-error: true
+        timeout-minutes: 25
+        run: node tools/fetch_specs.mjs
       - name: Витрина магазинов из фидов (src/data/feed_items.json)
         if: github.event_name != 'push'
         continue-on-error: true
@@ -45,7 +50,7 @@ jobs:
         run: |
           git config user.name "tehnopodbor-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/data/prices.json src/data/feed_items.json 2>/dev/null || git add src/data/prices.json
+          for f in src/data/prices.json src/data/feed_items.json research/specs_cache.json; do [ -f "$f" ] && git add "$f"; done
           git diff --cached --quiet || (git commit -m "Цены и витрина магазинов на $(date -u +%F)" && git push)
       - uses: actions/upload-pages-artifact@v3
         if: github.ref == 'refs/heads/main'
