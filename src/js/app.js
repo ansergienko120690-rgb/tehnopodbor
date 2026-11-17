@@ -485,9 +485,13 @@ function totals(items, c) {
 }
 
 // ---------- Отзывы ----------
-// Хранилище: общая база артефакта (db), документ reviews/<id пользователя> = { items: { <id модели>: отзыв } }.
-// Без базы (открыто вне claude.ai) — только на этом устройстве (localStorage).
-const RV = { state: 'init', all: {}, uid: null, db: null, user: null, owner: false, canWrite: true, names: {}, chain: Promise.resolve() };
+// Три режима:
+//  • claude.ai — общая база артефакта (db), документ reviews/<id пользователя> = { items: { <id модели>: отзыв } };
+//  • сайт и приложение — свой сервер отзывов (server/reviews, Yandex Cloud): вход через Яндекс ID, модерация;
+//    адрес сервера и id приложения Яндекс ID — в src/data/config.json → reviews: { api, yandexClientId };
+//  • сервер не настроен — только на этом устройстве (localStorage).
+const RV = { state: 'init', mode: '', all: {}, uid: null, db: null, user: null, owner: false, canWrite: true, names: {}, status: {}, chain: Promise.resolve() };
+const RCFG = (() => { try { const c = (readInline('tp-config') || {}).reviews || {}; return c.api ? { api: String(c.api), client: c.yandexClientId ? String(c.yandexClientId) : '' } : null; } catch { return null; } })();
 const REVF = { open: false, stars: 0 };
 const USAGE = ['Меньше месяца', 'До года', '1–3 года', 'Больше 3 лет'];
 function reviewsOf(pid) {
@@ -499,7 +503,7 @@ const myKey = () => RV.state === 'local' ? 'local' : RV.uid;
 const myReview = pid => { const k = myKey(); return k && RV.all[k] ? RV.all[k][pid] : null; };
 function reviewsBlock(p) {
   const rs = reviewsOf(p.id), s = score(p), mine = myReview(p.id);
-  const note = RV.state === 'local' ? '<div class="revnote">Отзывы сохраняются только на этом устройстве: приложение открыто вне claude.ai. Откройте его по ссылке claude.ai, чтобы отзывы видели все.</div>'
+  const note = RV.state === 'local' ? '<div class="revnote">Отзывы сохраняются только на этом устройстве.</div>'
     : RV.state === 'init' || RV.state === 'loading' ? '<div class="revnote">Загружаем отзывы…</div>'
     : RV.state === 'slow' ? '<div class="revnote">Отзывы пока не загрузились — проверьте интернет.</div>'
     : RV.state === 'error' ? '<div class="revnote">Не удалось загрузить отзывы.</div>' : '';
@@ -509,19 +513,24 @@ function reviewsBlock(p) {
       <label class="fl">Достоинства<textarea name="pros" maxlength="600">${esc(mine?.pros || '')}</textarea></label>
       <label class="fl">Недостатки<textarea name="cons" maxlength="600">${esc(mine?.cons || '')}</textarea></label>
       <label class="fl">Комментарий<textarea name="text" maxlength="1500">${esc(mine?.text || '')}</textarea></label>
+      ${RV.mode === 'server' ? '<div class="revnote" style="margin:0 0 10px">Отзыв будет опубликован с вашим именем из Яндекс ID. Отзывы со ссылками, контактами и грубостью публикуются после проверки.</div>' : ''}
       <div class="acts" style="padding:0"><button type="button" class="btn" data-revcancel>Отмена</button><button class="btn primary">${mine ? 'Сохранить' : 'Опубликовать'}</button></div></form>` : '';
   const canWrite = RV.state === 'local' || (RV.state === 'live' && RV.canWrite && RV.uid);
   const btn = REVF.open ? '' : canWrite ? `<button class="btn full" ${mine ? `data-revedit="${p.id}"` : `data-revnew="${p.id}"`}>${mine ? 'Изменить мой отзыв' : '+ Написать отзыв'}</button>`
+    : RV.state === 'live' && RV.mode === 'server' ? (RCFG.client ? '<button class="btn full" data-yalogin>Войти через Яндекс ID, чтобы написать отзыв</button>' : '<div class="revnote">Вход для отзывов пока не настроен.</div>')
     : RV.state === 'live' ? '<div class="revnote">Чтобы оставлять отзывы, владелец должен открыть вам доступ уровня «Участник» (Contributor) или выше.</div>' : '';
-  const list = rs.map(r => `<div class="rev"><div class="who"><span><b>${esc(RV.names[r.uid] || (r.uid === RV.uid || r.uid === 'local' ? 'Вы' : 'Пользователь'))}</b>${r.usage ? ' · ' + esc(r.usage) : ''}</span><span>${r.at ? new Date(r.at).toLocaleDateString('ru-RU') : ''}</span></div>
+  const st = r => RV.status[r.uid + '|' + p.id];
+  const list = rs.map(r => `<div class="rev"><div class="who"><span><b>${esc(RV.names[r.uid] || (r.uid === RV.uid || r.uid === 'local' ? 'Вы' : 'Пользователь'))}</b>${r.usage ? ' · ' + esc(r.usage) : ''}${st(r) === 'pending' ? ' · <i>на проверке, видите только вы</i>' : st(r) === 'rejected' ? ' · <i>не прошёл проверку</i>' : ''}</span><span>${r.at ? new Date(r.at).toLocaleDateString('ru-RU') : ''}</span></div>
       <div>${stars(r.stars)}</div>
       ${r.pros ? `<div><span class="pl">Достоинства:</span> ${esc(r.pros)}</div>` : ''}${r.cons ? `<div><span class="mn">Недостатки:</span> ${esc(r.cons)}</div>` : ''}${r.text ? `<div>${esc(r.text)}</div>` : ''}
-      ${(r.uid === RV.uid || r.uid === 'local' || RV.owner) && RV.state !== 'loading' ? `<div><button class="lnk" data-revdel="${p.id}" data-uid="${esc(r.uid)}">Удалить</button></div>` : ''}</div>`).join('');
+      ${(r.uid === RV.uid || r.uid === 'local' || RV.owner) && RV.state !== 'loading' ? `<div><button class="lnk" data-revdel="${p.id}" data-uid="${esc(r.uid)}">Удалить</button></div>`
+        : RV.mode === 'server' && RV.uid ? `<div><button class="lnk" data-revrep="${p.id}" data-uid="${esc(r.uid)}">Пожаловаться</button></div>` : ''}</div>`).join('');
   return `<div class="revhead"><div class="ksec" style="margin:0">Отзывы</div><span class="cap">${plural(rs.length, 'отзыв', 'отзыва', 'отзывов')}</span></div>
     <div class="revsum"><div class="big">${s.val ? num(s.val.toFixed(1)) : '—'}</div><div><div>${s.val ? stars(s.val) : ''}</div>
       <div class="sub">Сводный рейтинг: магазин ${s.base ? '★ ' + num(s.base) : '—'}${s.n ? ` + отзывы ★ ${num(s.users.toFixed(1))}` : ''}</div></div></div>
     ${note}${list || (RV.state === 'live' || RV.state === 'local' ? '<div class="revnote">Отзывов пока нет — будьте первым.</div>' : '')}
-    <div style="margin-top:12px">${form}${btn}</div>`;
+    <div style="margin-top:12px">${form}${btn}</div>
+    ${RV.mode === 'server' && RV.uid ? `<div class="revnote" style="margin-top:8px">Вы вошли как ${esc(RV.names[RV.uid] || '')} · <button class="lnk" data-yalogout>Выйти</button>${RV.owner ? ' · <a class="lnk" href="moderation.html" target="_blank" rel="noopener">Модерация</a>' : ''}</div>` : ''}`;
 }
 function refreshReviews() {
   const el = $('#revs'); if (el && S.detail) {
@@ -536,6 +545,7 @@ function refreshAll() {
 }
 function localReviews() { return store.get('reviews_local', {}); }
 function writeMine(items) {
+  if (RV.mode === 'server') return Promise.resolve();
   if (RV.state === 'local') { store.set('reviews_local', items); RV.all = { local: items }; refreshAll(); return Promise.resolve(); }
   RV.all = { ...RV.all, [RV.uid]: items };
   RV.chain = RV.chain.then(() => RV.db.doc('reviews/' + RV.uid).set({ items })).catch(e => {
@@ -547,11 +557,17 @@ function submitReview(f) {
   const pid = f.dataset.pid; if (!REVF.stars) { toast('Поставьте оценку звёздами'); return; }
   const fd = new FormData(f), clip = (v, n) => String(v || '').trim().slice(0, n);
   const r = { stars: REVF.stars, usage: clip(fd.get('usage'), 40), pros: clip(fd.get('pros'), 600), cons: clip(fd.get('cons'), 600), text: clip(fd.get('text'), 1500), at: Date.now() };
+  REVF.open = false; document.activeElement?.blur();
+  if (RV.mode === 'server') {
+    srv('save', { pid, ...r }).then(x => { toast(x.status === 'pending' ? 'Отзыв отправлен на проверку' : 'Отзыв опубликован'); return srvLoad(); }).catch(e => toast(e.message || 'Не удалось сохранить отзыв'));
+    return;
+  }
   const key = RV.state === 'local' ? 'local' : RV.uid;
   const items = { ...(RV.all[key] || {}), [pid]: r };
-  REVF.open = false; document.activeElement?.blur(); writeMine(items).then(() => toast('Отзыв сохранён'));
+  writeMine(items).then(() => toast('Отзыв сохранён'));
 }
 function deleteReview(pid, uid) {
+  if (RV.mode === 'server') { srv('del', { pid, uid }).then(() => { toast('Отзыв удалён'); return srvLoad(); }).catch(e => toast(e.message || 'Не удалось удалить')); return; }
   if (RV.state === 'local' || uid === RV.uid) { const key = RV.state === 'local' ? 'local' : RV.uid; const items = { ...(RV.all[key] || {}) }; delete items[pid]; writeMine(items); toast('Отзыв удалён'); return; }
   if (RV.owner && RV.db) { const items = { ...(RV.all[uid] || {}) }; delete items[pid]; RV.all = { ...RV.all, [uid]: items };
     RV.chain = RV.chain.then(() => RV.db.doc('reviews/' + uid).set({ items })).catch(() => toast('Не удалось удалить')); refreshAll(); toast('Отзыв удалён'); }
@@ -561,8 +577,47 @@ async function resolveNames() {
   const ids = Object.keys(RV.all).filter(id => !(id in RV.names)); if (!ids.length) return;
   try { const ps = await RV.user.profiles(ids); ids.forEach(id => { RV.names[id] = (ps && ps[id] && ps[id].name) || ''; }); refreshReviews(); } catch {}
 }
+// ----- свой сервер отзывов -----
+async function srv(a, body) {
+  const tok = store.get('ya_token', null);
+  const r = await fetch(RCFG.api + (RCFG.api.includes('?') ? '&' : '?') + 'a=' + a, {
+    method: body ? 'POST' : 'GET', cache: 'no-store',
+    headers: { ...(tok ? { Authorization: 'OAuth ' + tok } : {}), ...(body ? { 'Content-Type': 'application/json' } : {}) },
+    body: body ? JSON.stringify(body) : undefined });
+  const j = await r.json().catch(() => ({}));
+  if (r.status === 401 && tok) { store.set('ya_token', null); RV.uid = null; RV.owner = false; }
+  if (!r.ok) throw new Error(j.error || 'Сервер отзывов недоступен');
+  return j;
+}
+async function srvLoad() {
+  const [list, me] = await Promise.all([srv('list'), store.get('ya_token', null) ? srv('me').catch(() => null) : null]);
+  const all = {}, names = {}, status = {};
+  const put = r => { (all[r.uid] = all[r.uid] || {})[r.pid] = { stars: r.stars, usage: r.usage, pros: r.pros, cons: r.cons, text: r.text, at: r.at }; names[r.uid] = r.name; };
+  (list.items || []).forEach(put);
+  if (me) { RV.uid = me.uid; RV.owner = !!me.admin; names[me.uid] = me.name;
+    (me.items || []).forEach(r => { if (r.status !== 'ok') { put(r); status[r.uid + '|' + r.pid] = r.status; } }); }
+  else { RV.uid = null; RV.owner = false; }
+  RV.all = all; RV.names = names; RV.status = status; RV.state = 'live'; refreshAll();
+}
+function yaLogin() {
+  const u = 'https://oauth.yandex.ru/authorize?response_type=token&client_id=' + encodeURIComponent(RCFG.client) + '&redirect_uri=' + encodeURIComponent(new URL('auth.html', location.href).href);
+  store.set('auth_back', location.href);
+  const w = window.open(u, 'yaauth', 'width=520,height=680');
+  if (!w) location.href = u;   // всплывающие окна запрещены — уходим на вход в этом же окне, auth.html вернёт назад
+}
+window.addEventListener('message', e => { if (e.origin === location.origin && e.data && e.data.tpAuth) { REVF.open = false; srvLoad().then(() => toast('Вы вошли')).catch(() => {}); } });
+window.addEventListener('storage', e => { if (e.key === 'tp_ya_token' && RV.mode === 'server') srvLoad().catch(() => {}); });
+
 async function initReviews() {
   const local = () => { RV.state = 'local'; RV.all = { local: localReviews() }; refreshAll(); };
+  const onSite = /^https?:$/.test(location.protocol) && !/claude|anthropic/.test(location.hostname);
+  if (RCFG && onSite && !(window.claude && typeof window.claude.use === 'function')) {
+    RV.mode = 'server'; RV.state = 'loading'; refreshReviews();
+    const timer = setTimeout(() => { if (RV.state === 'loading') { RV.state = 'slow'; refreshReviews(); } }, 10000);
+    try { await srvLoad(); } catch { RV.state = 'error'; refreshAll(); }
+    clearTimeout(timer);
+    return;
+  }
   if (!window.claude || typeof window.claude.use !== 'function') return local();
   try {
     const [db, user] = await Promise.all([claude.use('db'), claude.use('user')]);
@@ -652,6 +707,9 @@ document.addEventListener('click', e => {
   if (d.star) { REVF.stars = +d.star; document.querySelectorAll('.starpick button').forEach(b => b.classList.toggle('on', +b.dataset.star <= REVF.stars)); return; }
   if (d.revedit) { REVF.open = true; REVF.stars = myReview(d.revedit)?.stars || 0; refreshReviews(); $('#revform textarea')?.focus(); return; }
   if (d.revdel) { deleteReview(d.revdel, d.uid); return; }
+  if (d.revrep) { srv('report', { pid: d.revrep, uid: d.uid }).then(() => toast('Жалоба отправлена модератору')).catch(e => toast(e.message)); return; }
+  if (t.dataset.yalogin !== undefined) { yaLogin(); return; }
+  if (t.dataset.yalogout !== undefined) { store.set('ya_token', null); srvLoad().then(() => toast('Вы вышли')).catch(() => {}); return; }
   if (d.revnew) { REVF.open = true; REVF.stars = 0; refreshReviews(); return; }
   if (d.revcancel !== undefined) { REVF.open = false; refreshReviews(); return; }
   if (d.fav) { e.stopPropagation(); toggleFav(d.fav); return; }
