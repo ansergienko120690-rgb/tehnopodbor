@@ -52,11 +52,12 @@ const importmapTag = haveThree
   ? `<script>(function () { var local = /^https?:$/.test(location.protocol) && !/claude|anthropic/.test(location.hostname);
   document.write('<script type="importmap">' + JSON.stringify(local ? ${JSON.stringify(LOCAL_MAP)} : ${JSON.stringify(CDN_MAP)}) + '<\\/script>'); })();</script>`
   : `<script type="importmap">${JSON.stringify(CDN_MAP)}</script>`;
+const CONFIG = fs.existsSync(path.join(root, 'src/data/config.json')) ? JSON.parse(rd('src/data/config.json')) : {};
 const safeJSON = o => JSON.stringify(o).replace(/</g, '\\u003c');
 const scripts = [
   `<script type="application/json" id="tp-catalog">${safeJSON(catalog)}</script>`,
   `<script type="application/json" id="tp-prices">${safeJSON(prices)}</script>`,
-  `<script type="application/json" id="tp-config">${safeJSON(fs.existsSync(path.join(root, 'src/data/config.json')) ? JSON.parse(rd('src/data/config.json')) : {})}</script>`,
+  `<script type="application/json" id="tp-config">${safeJSON(CONFIG)}</script>`,
   ...ORDER.map(f => `<script>// ===== src/${f} =====\n${rd('src/' + f)}</script>`),
   `<script>render(); API.sync();</script>`,
   importmapTag,
@@ -70,6 +71,9 @@ fs.mkdirSync(path.join(root, 'dist/data'), { recursive: true });
 if (haveThree) for (const f of VENDOR) { const to = path.join(root, 'dist/vendor/three', f); fs.mkdirSync(path.dirname(to), { recursive: true }); fs.copyFileSync(path.join(THREE_SRC, f), to); }
 else console.warn('node_modules/three нет — three.js будет грузиться с CDN (npm i --no-save three@0.160.0)');
 fs.writeFileSync(path.join(root, 'dist/index.html'), html);
+// страницы входа через Яндекс ID и модерации отзывов
+fs.writeFileSync(path.join(root, 'dist/auth.html'), rd('src/auth.html'));
+fs.writeFileSync(path.join(root, 'dist/moderation.html'), rd('src/moderation.html').replace('__CONFIG__', () => safeJSON(CONFIG)));
 fs.writeFileSync(path.join(root, 'dist/data/catalog.json'), JSON.stringify(catalog));
 fs.writeFileSync(path.join(root, 'dist/data/prices.json'), JSON.stringify(prices, null, 1) + '\n');
 const items = catalog.categories.reduce((a, c) => a + c.items.length, 0);
