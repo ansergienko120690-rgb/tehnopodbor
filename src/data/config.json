@@ -1,4 +1,8 @@
 {
- "metrika": null,
- "note": "metrika — номер счётчика Яндекс Метрики (число). Пока null — аналитика выключена."
+ "metrika": 114298779,
+ "reviews": {
+  "api": null,
+  "yandexClientId": "bb16688fadc64f93b56437fc3321f4e7"
+ },
+ "note": "metrika — номер счётчика Яндекс Метрики (число), null — аналитика выключена. reviews.api — адрес функции сервера отзывов (https://functions.yandexcloud.net/<id>), reviews.yandexClientId — ClientID приложения на oauth.yandex.ru; пока api = null — отзывы на сайте хранятся только на устройстве."
 }
