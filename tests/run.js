@@ -127,10 +127,12 @@ const ok = (name, cond, info = '') => { results.push(`${cond ? 'OK  ' : 'FAIL'} 
     const u = new URL(r.request().url()).pathname;
     if (u === '/data/prices.json') return r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ updated: '2030-01-01T00:00:00Z', sources: ['ci'], items: { 'fridge-midea-mdrb457fgf01id': { price: 12345, shop: 'CI-шоп' } } }) });
     const f = path.join(DIST, u === '/' ? 'index.html' : u);
-    return fs.existsSync(f) ? r.fulfill({ status: 200, contentType: f.endsWith('.json') ? 'application/json' : 'text/html', body: fs.readFileSync(f) }) : r.fulfill({ status: 404 });
+    return fs.existsSync(f) ? r.fulfill({ status: 200, contentType: f.endsWith('.json') ? 'application/json' : f.endsWith('.js') ? 'application/javascript' : 'text/html', body: fs.readFileSync(f) }) : r.fulfill({ status: 404 });
   });
-  const err2 = []; pg2.on('pageerror', e => err2.push(e.message));
+  const err2 = [], cdn2 = []; pg2.on('pageerror', e => err2.push(e.message)); pg2.on('request', q => { if (/jsdelivr/.test(q.url())) cdn2.push(q.url()); });
   await pg2.goto('http://tp.test/'); await pg2.waitForTimeout(2500);
+  const r3 = await pg2.waitForFunction(() => window.R3, null, { timeout: 15000 }).then(() => true).catch(() => false);
+  ok('three.js на сайте — своя копия, без зарубежного CDN', r3 && cdn2.length === 0, `3D: ${r3}, запросов к CDN: ${cdn2.length}`);
   const live = await pg2.evaluate(() => ({ base: API.base, price: byId('fridge-midea-mdrb457fgf01id') && byId('fridge-midea-mdrb457fgf01id').price, st: API.state.prices }));
   ok('По HTTP цены подтягиваются из data/prices.json', live.price === 12345, `${live.base} → ${live.price} ₽ (${live.st})`);
   ok('Без ошибок JavaScript на HTTP-версии', err2.length === 0, err2.slice(0, 2).join(' | '));
@@ -154,14 +156,19 @@ const ok = (name, cond, info = '') => { results.push(`${cond ? 'OK  ' : 'FAIL'} 
   ok('Демо-моделей нет, пустые категории скрыты', nd.demo === 0 && nd.empty === 0, `${nd.cats} категорий`);
   ok('У каждого товара есть размер для 3D', nd.box);
 
+  // --- аналитика: без номера счётчика и под file:// ничего не отправляется, функции приложения работают
+  const mt = await pg.evaluate(() => ({ has: typeof METRICS === 'object', on: METRICS.on, ext: [...document.scripts].some(s => /mc\.yandex/.test(s.src)) }));
+  ok('Аналитика подключена, но выключена без счётчика', mt.has && !mt.on && !mt.ext);
+
   // --- витрина магазинов (фиды)
   const fd = await pg.evaluate(() => { const F = PRODUCTS.filter(p => p.feed); if (!F.length) return { n: 0 };
     const p = F[0]; closeSheet(); detail(p.id); const txt = document.body.innerText;
     return { n: F.length, priced: F.every(x => x.price > 0 && /^https:/.test(x.source.url)), noRating: F.every(x => !x.rating),
-      box: F.every(x => x.box && x.box.w > 0 && x.box.h > 0), note: /Магазин не передаёт характеристики/.test(txt) && /типичные для категории/.test(txt),
-      link: [...document.querySelectorAll('a')].some(a => a.href === p.source.url), dims: !/\d+×\d+ см/.test(document.querySelector('.ptitle').innerText) }; });
+      box: F.every(x => x.box && x.box.w > 0 && x.box.h > 0), note: /Товар из каталога магазина/.test(txt) && /сверяйтесь с магазином/.test(txt),
+      link: [...document.querySelectorAll('a')].some(a => a.href === p.source.url), dims: (!!p.specs.width) === /\d+×\d+ см/.test(document.querySelector('.ptitle').innerText),
+      spec: F.filter(x => x.source.specs).length }; });
   if (fd.n) {
-    ok('Витрина: у товаров из фидов цена и ссылка магазина', fd.priced, `${fd.n} товаров`);
+    ok('Витрина: у товаров из фидов цена и ссылка магазина', fd.priced, `${fd.n} товаров, с характеристиками со страниц магазина: ${fd.spec}`);
     ok('Витрина: рейтинг не выдумывается, 3D — типичный размер категории', fd.noRating && fd.box);
     ok('Витрина: в карточке честная пометка и ссылка, без выдуманных габаритов', fd.note && fd.link && fd.dims);
   }
