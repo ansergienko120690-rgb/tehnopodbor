@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Модерация отзывов — ТехноПодбор</title><meta name="robots" content="noindex">
+<style>
+body{font:15px/1.45 system-ui,sans-serif;background:#111;color:#eee;margin:0;padding:16px;max-width:760px;margin:auto}
+h1{font-size:20px}.r{background:#1c1c1c;border:1px solid #333;border-radius:12px;padding:12px;margin:10px 0}
+.s{color:#e0b46a}.why{color:#f88;font-size:13px}.m{color:#999;font-size:13px}
+button{font:inherit;border-radius:8px;border:1px solid #555;background:#222;color:#eee;padding:6px 12px;margin:6px 6px 0 0;cursor:pointer}
+button.ok{border-color:#3a6;color:#8e8}button.no{border-color:#a44;color:#f99}
+</style></head><body>
+<h1>Модерация отзывов</h1><div id="st" class="m">Загрузка…</div><div id="q"></div>
+<script type="application/json" id="tp-config">__CONFIG__</script>
+<script>
+// Страница модератора: отзывы на проверке (ссылки, контакты, грубость, правка после отклонения) и с жалобами.
+// Доступ — только тем, чьи id Яндекса указаны в ADMIN_IDS у функции сервера отзывов.
+var CFG = {}; try { CFG = JSON.parse(document.getElementById('tp-config').textContent).reviews || {}; } catch (e) {}
+var tok = null; try { tok = JSON.parse(localStorage.getItem('tp_ya_token')); } catch (e) {}
+var st = document.getElementById('st'), Q = document.getElementById('q');
+var esc = function (s) { return String(s || '').replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+function call(a, body) {
+  return fetch(CFG.api + (CFG.api.indexOf('?') < 0 ? '?' : '&') + 'a=' + a, { method: body ? 'POST' : 'GET', cache: 'no-store',
+    headers: Object.assign({ Authorization: 'OAuth ' + tok }, body ? { 'Content-Type': 'application/json' } : {}), body: body ? JSON.stringify(body) : undefined })
+    .then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || r.status); return j; }); });
+}
+function load() {
+  if (!CFG.api) { st.textContent = 'Сервер отзывов не настроен (config.json → reviews.api).'; return; }
+  if (!tok) { st.innerHTML = 'Войдите в приложении через Яндекс ID и откройте эту страницу снова. <a href=".">В приложение</a>'; return; }
+  call('queue').then(function (j) {
+    st.textContent = j.items.length ? 'На проверке: ' + j.items.length : 'Очередь пуста — всё проверено.';
+    Q.innerHTML = j.items.map(function (r) {
+      return '<div class="r"><div><b>' + esc(r.name) + '</b> · <span class="s">' + '★'.repeat(r.stars) + '</span> · ' + esc(r.pid) +
+        ' · <span class="m">' + new Date(r.at).toLocaleString('ru-RU') + '</span></div>' +
+        '<div class="why">' + (r.status === 'ok' ? 'Опубликован, жалоб: ' + r.reports : 'Причина: ' + esc(r.reason)) + '</div>' +
+        (r.pros ? '<div>Достоинства: ' + esc(r.pros) + '</div>' : '') + (r.cons ? '<div>Недостатки: ' + esc(r.cons) + '</div>' : '') + (r.text ? '<div>' + esc(r.text) + '</div>' : '') +
+        '<button class="ok" data-ok="1" data-pid="' + esc(r.pid) + '" data-uid="' + esc(r.uid) + '">Опубликовать</button>' +
+        '<button class="no" data-ok="0" data-pid="' + esc(r.pid) + '" data-uid="' + esc(r.uid) + '">Отклонить</button>' +
+        '<button data-del="1" data-pid="' + esc(r.pid) + '" data-uid="' + esc(r.uid) + '">Удалить</button></div>';
+    }).join('');
+  }).catch(function (e) { st.textContent = 'Нет доступа: ' + e.message; });
+}
+Q.addEventListener('click', function (e) {
+  var b = e.target.closest('button'); if (!b) return;
+  var d = b.dataset, p = d.del ? call('del', { pid: d.pid, uid: d.uid }) : call('mod', { pid: d.pid, uid: d.uid, ok: d.ok === '1' });
+  b.disabled = true; p.then(load).catch(function (er) { alert(er.message); b.disabled = false; });
+});
+load();
+</script></body></html>

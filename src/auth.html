@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Вход — ТехноПодбор</title><meta name="robots" content="noindex">
+<style>body{font:16px system-ui,sans-serif;background:#111;color:#eee;display:grid;place-items:center;min-height:100vh;margin:0;text-align:center;padding:20px}a{color:#e0b46a}</style>
+</head><body><div id="m">Входим…</div>
+<script>
+// Сюда Яндекс ID возвращает пользователя после входа: #access_token=...  Токен сохраняется только в этом браузере
+// и отправляется только на сервер отзывов ТехноПодбора. Пароль Яндекса приложение не видит.
+(function () {
+  var h = new URLSearchParams(location.hash.slice(1)), t = h.get('access_token'), m = document.getElementById('m');
+  history.replaceState(null, '', location.pathname);
+  var back = '.'; try { back = JSON.parse(localStorage.getItem('tp_auth_back')) || '.'; } catch (e) {}
+  if (!t) { m.innerHTML = 'Вход не выполнен' + (h.get('error_description') ? ': ' + h.get('error_description').replace(/</g, '&lt;') : '') + '.<br><a href="' + back.replace(/"/g, '') + '">Вернуться</a>'; return; }
+  try { localStorage.setItem('tp_ya_token', JSON.stringify(t)); } catch (e) {}
+  try { if (window.opener && window.opener.location.origin === location.origin) { window.opener.postMessage({ tpAuth: 1 }, location.origin); window.close(); return; } } catch (e) {}
+  location.replace(back);
+})();
+</script></body></html>
