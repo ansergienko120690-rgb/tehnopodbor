@@ -405,10 +405,10 @@ window.addEventListener('resize', () => { if (VG.items) { VG.rowH = 0; vgUpdate(
 const MAIN_NAME = { aircon: 'Внутренний блок', vacuum: 'Робот', waterfilter: 'Фильтр', toothbrush: 'Щётка', shaver: 'Бритва',
   styler: 'Стайлер', trimmer: 'Машинка', steamer: 'Отпариватель', tv: 'Телевизор', foodproc: 'Комбайн' };
 function partsOf(p) {
-  const s = p.specs, B = p.box || {}, P = [{ id: 'main', name: MAIN_NAME[p.cat] || 'Изделие', w: s.width || B.w, h: s.height || B.h, d: s.depth || B.d, approx: !s.width && !!B.w }];
+  const s = p.specs, B = p.box || {}, P = [{ id: 'main', name: (p.source && p.source.kind ? 'Кондиционер' : MAIN_NAME[p.cat]) || 'Изделие', w: s.width || B.w, h: s.height || B.h, d: s.depth || B.d, approx: !s.width && !!B.w && (B.approx || true) }];
   const add = (id, name, w, h, d, n) => P.push({ id, name, w, h, d, n });
   switch (p.cat) {
-    case 'aircon': add('out', 'Наружный блок', s.ow || 70, s.oh || 55, s.od || 27); break;
+    case 'aircon': if (!(p.source && p.source.kind)) add('out', 'Наружный блок', s.ow || 70, s.oh || 55, s.od || 27); break;   // у мобильных и оконных наружного блока нет
     case 'vacuum': if (s.type === 'Робот') s.station ? add('station', 'Станция самоочистки', 34, 42, 40) : add('base', 'Зарядная база', 16, 9, 11); break;
     case 'waterfilter': if (s.type !== 'Кувшин') { add('faucet', 'Кран', 5, 32, 18); if (s.type === 'Обратный осмос') add('tank', 'Накопительный бак', 26, 36, 26); } break;
     case 'toothbrush': add('charger', 'Зарядная подставка', 6, 4.5, 6); break;
@@ -422,7 +422,7 @@ function partsOf(p) {
   if (P.length > 1) P.push({ id: 'all', name: 'Весь комплект' });
   return P;
 }
-const partSize = pt => pt.w ? `${pt.approx ? '≈ ' : ''}${num(pt.w)}×${num(pt.h)}×${num(pt.d)} см${pt.approx ? ' (типичный размер)' : ''}` : '';
+const partSize = pt => pt.w ? `${pt.approx ? '≈ ' : ''}${num(pt.w)}×${num(pt.h)}×${num(pt.d)} см${pt.approx ? (pt.approx === 'pkg' ? ' (по упаковке)' : ' (типичный размер)') : ''}` : '';
 function partsBar(p) {
   const P = partsOf(p); if (P.length < 2) return '';
   const cur = S.detail ? S.detail.part : 'main', pt = P.find(x => x.id === cur) || P[0];
@@ -439,9 +439,11 @@ function priceSource(p) {
   const S = p.source, o = p.offer, shop = (o && o.shop) || (S && S.shop) || '';
   const parts = [];
   if (p.feed) {
-    parts.push(`Товар из каталога магазина «${esc(S.shop)}»${S.at ? ' на ' + fmtDate(S.at) : ''}. Магазин не передаёт характеристики — показаны только те, что указаны в названии${S.title ? ' («' + esc(S.title) + '»)' : ''}.`);
+    parts.push(`Товар из каталога магазина «${esc(S.shop)}»${S.at ? ' на ' + fmtDate(S.at) : ''}. ` + (S.specs
+      ? `Характеристики — со страницы товара в магазине «${esc(S.specs)}»; чего там нет, показано «—».`
+      : `Магазин не передаёт характеристики — показаны только те, что указаны в названии${S.title ? ' («' + esc(S.title) + '»)' : ''}.`));
     if (S.offers && S.offers.length > 1) parts.push('Цены в магазинах: ' + S.offers.map(x => `«${esc(x.shop)}» ${rub(x.price)}`).join(', ') + '.');
-    parts.push('Размеры 3D-модели — типичные для категории, не этой модели. Перед покупкой сверяйтесь с магазином.');
+    parts.push(p.specs.width ? '3D-модель построена по габаритам из магазина, детали упрощены. Перед покупкой сверяйтесь с магазином.' : p.box && p.box.approx === 'pkg' ? 'Размер 3D-модели — примерный, по размерам упаковки. Перед покупкой сверяйтесь с магазином.' : 'Размеры 3D-модели — типичные для категории, не этой модели. Перед покупкой сверяйтесь с магазином.');
     return `<p class="sub" style="margin-top:16px">${parts.join(' ')}</p>`;
   }
   if (p.real) parts.push(`Реальная модель: характеристики${S.reviews ? ', оценка ★ ' + num(p.rating) + ' по ' + plural(S.reviews, 'отзыву', 'отзывам', 'отзывам') : ''} — с сайта магазина «${esc(S.shop)}»${S.at ? ' на ' + fmtDate(S.at) : ''}.`);

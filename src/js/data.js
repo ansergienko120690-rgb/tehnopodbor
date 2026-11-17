@@ -47,7 +47,11 @@ function parseCatalog(categories) {
     const mine = products.filter(p => p.cat === c.id);
     const own = mine.filter(p => !(p.source && p.source.src === 'feed'));
     const b = c.box || {}, box = { w: b.w || med(own.map(p => p.specs.width)), h: b.h || med(own.map(p => p.specs.height)), d: b.d || med(own.map(p => p.specs.depth)) };
-    mine.forEach(p => { p.box = box; if (p.source && p.source.src === 'feed') p.feed = true; });
+    mine.forEach(p => {
+      const k = p.source && p.source.pkg;   // ≈ размер по упаковке (со страницы магазина), иначе типичный для категории
+      p.box = k && k.w && k.h ? { w: k.w, h: k.h, d: k.d || box.d, approx: 'pkg' } : box;
+      if (p.source && p.source.src === 'feed') p.feed = true;
+    });
   });
   return { products, errors };
 }
