@@ -1,0 +1,9 @@
+{
+  "name": "tehnopodbor-reviews",
+  "version": "1.0.0",
+  "private": true,
+  "description": "ТехноПодбор — сервер отзывов (Yandex Cloud Functions + YDB)",
+  "main": "index.js",
+  "scripts": { "test": "node test.js" },
+  "dependencies": { "ydb-sdk": "5.11.1" }
+}
