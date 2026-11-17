@@ -42,6 +42,9 @@ jobs:
       - name: Автотесты
         run: node tests/run.js dist/index.html
         env: { CHROME: /usr/bin/google-chrome, THREE_DIR: node_modules/three/ }
+      - name: Сервер отзывов — тесты (сервер + сквозной в браузере)
+        run: node server/reviews/test.js && node tests/reviews_e2e.js dist/index.html
+        env: { CHROME: /usr/bin/google-chrome, THREE_DIR: node_modules/three/ }
       - uses: actions/upload-artifact@v4
         if: always()
         with: { name: test-shots, path: tests/shots }
