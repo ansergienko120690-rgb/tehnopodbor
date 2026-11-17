@@ -36,9 +36,9 @@ jobs:
         if: github.event_name != 'push'
         run: node tools/update_prices.mjs
         env: { PRICE_FEEDS: '${{ secrets.PRICE_FEEDS }}' }
+      - run: npm i --no-save playwright three@0.160.0   # до сборки: build.mjs кладёт three.js в dist/vendor
       - name: Сборка
         run: node tools/build.mjs
-      - run: npm i --no-save playwright three@0.160.0
       - name: Автотесты
         run: node tests/run.js dist/index.html
         env: { CHROME: /usr/bin/google-chrome, THREE_DIR: node_modules/three/ }
