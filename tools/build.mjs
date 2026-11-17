@@ -10,7 +10,7 @@ import vm from 'node:vm';
 
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
 const rd = p => fs.readFileSync(path.join(root, p), 'utf8');
-const ORDER = ['js/icons.js', 'js/data.js', 'js/api.js', 'js/app.js', 'js/illo.js'];
+const ORDER = ['js/icons.js', 'js/data.js', 'js/api.js', 'js/app.js', 'js/illo.js', 'js/metrics.js'];
 
 // 1. Проверка данных до сборки
 const catalog = JSON.parse(rd('src/data/catalog.json'));
@@ -41,13 +41,25 @@ if (errors.length) { console.error('Ошибки данных:\n' + errors.join(
 for (const f of ORDER) new vm.Script(rd('src/' + f), { filename: f });
 
 // 3. Сборка
+// three.js: на сайте и в приложении — своя копия (dist/vendor/three), без зависимости от зарубежного CDN;
+// под file:// и в песочнице claude.ai своя копия недоступна — там остаётся CDN.
+const CDN_MAP = JSON.parse(rd('src/js/importmap.json'));
+const THREE_SRC = path.join(root, 'node_modules/three');
+const VENDOR = ['build/three.module.min.js', 'examples/jsm/geometries/RoundedBoxGeometry.js', 'examples/jsm/controls/OrbitControls.js', 'examples/jsm/environments/RoomEnvironment.js'];
+const haveThree = VENDOR.every(f => fs.existsSync(path.join(THREE_SRC, f)));
+const LOCAL_MAP = { imports: { three: './vendor/three/build/three.module.min.js', 'three/addons/': './vendor/three/examples/jsm/' } };
+const importmapTag = haveThree
+  ? `<script>(function () { var local = /^https?:$/.test(location.protocol) && !/claude|anthropic/.test(location.hostname);
+  document.write('<script type="importmap">' + JSON.stringify(local ? ${JSON.stringify(LOCAL_MAP)} : ${JSON.stringify(CDN_MAP)}) + '<\\/script>'); })();</script>`
+  : `<script type="importmap">${JSON.stringify(CDN_MAP)}</script>`;
 const safeJSON = o => JSON.stringify(o).replace(/</g, '\\u003c');
 const scripts = [
   `<script type="application/json" id="tp-catalog">${safeJSON(catalog)}</script>`,
   `<script type="application/json" id="tp-prices">${safeJSON(prices)}</script>`,
+  `<script type="application/json" id="tp-config">${safeJSON(fs.existsSync(path.join(root, 'src/data/config.json')) ? JSON.parse(rd('src/data/config.json')) : {})}</script>`,
   ...ORDER.map(f => `<script>// ===== src/${f} =====\n${rd('src/' + f)}</script>`),
   `<script>render(); API.sync();</script>`,
-  `<script type="importmap">${rd('src/js/importmap.json').trim()}</script>`,
+  importmapTag,
   `<script type="module">// ===== src/js/r3d.js =====\n${rd('src/js/r3d.js')}</script>`,
 ].join('\n');
 let html = rd('src/index.html');
@@ -55,6 +67,8 @@ if (!html.includes('<!-- @styles -->') || !html.includes('<!-- @scripts -->')) t
 html = html.replace('<!-- @styles -->', () => `<style>\n${rd('src/styles.css')}</style>`).replace('<!-- @scripts -->', () => scripts);
 
 fs.mkdirSync(path.join(root, 'dist/data'), { recursive: true });
+if (haveThree) for (const f of VENDOR) { const to = path.join(root, 'dist/vendor/three', f); fs.mkdirSync(path.dirname(to), { recursive: true }); fs.copyFileSync(path.join(THREE_SRC, f), to); }
+else console.warn('node_modules/three нет — three.js будет грузиться с CDN (npm i --no-save three@0.160.0)');
 fs.writeFileSync(path.join(root, 'dist/index.html'), html);
 fs.writeFileSync(path.join(root, 'dist/data/catalog.json'), JSON.stringify(catalog));
 fs.writeFileSync(path.join(root, 'dist/data/prices.json'), JSON.stringify(prices, null, 1) + '\n');

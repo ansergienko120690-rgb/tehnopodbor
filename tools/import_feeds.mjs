@@ -5,6 +5,7 @@
 // Чего нет — остаётся пустым (в карточке «—»), рейтинг не выдумываем.
 import fs from 'node:fs';
 import path from 'node:path';
+import { mapSpecs } from './spec_map.mjs';
 
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
 const P = f => path.join(root, 'src/data', f);
@@ -15,6 +16,9 @@ const urls = [...secret];
 const tpl = secret.find(u => /feed_id=\d+/.test(u));
 for (const id of cfg.extra_feed_ids || []) if (tpl && !urls.some(u => new RegExp('feed_id=' + id + '(&|$)').test(u))) urls.push(tpl.replace(/feed_id=\d+/, 'feed_id=' + id));
 const today = new Date().toISOString().slice(0, 10);
+// Характеристики со страниц товаров (tools/fetch_specs.mjs) — подмешиваются к тому, что прочитано из названия
+const SPECS = fs.existsSync(path.join(root, 'research/specs_cache.json')) ? JSON.parse(fs.readFileSync(path.join(root, 'research/specs_cache.json'), 'utf8')) : {};
+const pageOf = u => { try { return new URL(u).searchParams.get('ulp') || u; } catch { return u; } };
 
 // ---------- Рубрики магазинов → наши категории ----------
 // p — регулярка по пути рубрики (последние звенья), n — по названию товара (необязательно), set — значения характеристик.
@@ -191,7 +195,7 @@ for (const url of urls) {
       const offer = { shop: info.shop, price: Math.round(price), url: tag(b, 'url'), picture: tag(b, 'picture') };
       const prev = found.get(key);
       if (prev) { if (!prev.offers.some(o => o.url === offer.url)) prev.offers.push(offer); continue; }
-      found.set(key, { cat: rule.cat, brand, model, name, specs: { ...byUnits(base[rule.cat], text), ...(hasSpec(rule.cat, 'wifi') && /wi-?fi|iq home|smart|умн/i.test(name) ? { wifi: 1 } : {}), ...(rule.set ? rule.set(text, cpath, tag(b, 'model')) : {}) }, colors: colorOf(name + ' ' + mini), offers: [offer] });
+      found.set(key, { cat: rule.cat, kind: rule.cat === 'aircon' && /Мобильные|Оконные/.test(cpath) ? (/Оконные/.test(cpath) ? 'window' : 'mobile') : undefined, brand, model, name, specs: { ...byUnits(base[rule.cat], text), ...(hasSpec(rule.cat, 'wifi') && /wi-?fi|iq home|smart|умн/i.test(name) ? { wifi: 1 } : {}), ...(rule.set ? rule.set(text, cpath, tag(b, 'model')) : {}) }, colors: colorOf(name + ' ' + mini), offers: [offer] });
       took++;
     }
     sources.push(`${info.shop} (${took} новых из ${total})`);
@@ -204,12 +208,19 @@ const usedIds = new Set();
 for (const it of found.values()) {
   const c = base[it.cat];
   const specKeys = c.specs.concat(catalog.commonSpecs).filter(s => s[0] !== '#').map(s => s.split('|')[0]);
+  // характеристики со страницы товара в магазине (первая страница из предложений, где они есть)
+  let page = null;
+  for (const o of it.offers) { const e = SPECS[pageOf(o.url)]; if (e && e.n > 3) { page = { ...mapSpecs(it.cat, e.p, specKeys), shop: o.shop }; break; } }
+  if (page) Object.assign(it.specs, page.specs, page.dims);
   const vals = specKeys.map(k => k === 'colors' ? it.colors : (k in it.specs && it.specs[k] !== undefined ? it.specs[k] : null));
   it.offers.sort((a, b) => a.price - b.price);
   const best = it.offers[0];
   let id = 'f-' + it.cat + '-' + slug(it.brand + '-' + it.model); for (let i = 2; usedIds.has(id); i++) id = id.replace(/-\d+$/, '') + '-' + i;
   usedIds.add(id);
   const meta = { id, src: 'feed', shop: best.shop, url: best.url, at: today, picture: best.picture || undefined, title: it.name };
+  if (page && Object.keys(page.specs).length + Object.keys(page.dims).length) { meta.specs = page.shop; meta.nspec = Object.keys(page.specs).length + Object.keys(page.dims).length; }
+  if (page && page.pkg && page.pkg.w && !it.specs.width) meta.pkg = page.pkg;
+  if (it.kind) meta.kind = it.kind;
   if (it.offers.length > 1) meta.offers = it.offers.slice(0, 5).map(o => ({ shop: o.shop, price: o.price, url: o.url }));
   (cats[it.cat] = cats[it.cat] || []).push([it.brand, it.model, best.price, 0, ...vals, meta]);
 }
